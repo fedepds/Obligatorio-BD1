@@ -1,7 +1,8 @@
+USE cafes_marloy;
 -- TABLA LOGIN
 CREATE TABLE IF NOT EXISTS login (
     correo VARCHAR(100) PRIMARY KEY,
-    contraseña VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL,
     es_administrador BOOLEAN NOT NULL DEFAULT 0
 );
 -- correo ya es único por ser PRIMARY KEY
@@ -76,7 +77,7 @@ CREATE TABLE IF NOT EXISTS registro_consumo (
 );
 
 
-INSERT INTO login (correo, contraseña, es_administrador) VALUES
+INSERT INTO login (correo, password, es_administrador) VALUES
 ('admin@cafesmarloy.com', 'admin123', 1),
 ('soporte@cafesmarloy.com', 'soporte2024', 1),
 ('tecnico1@cafesmarloy.com', 'tec123', 0),
