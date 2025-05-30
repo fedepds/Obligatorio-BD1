@@ -1,0 +1,20 @@
+.login-sheet {
+  width: 300px;
+  margin: 1rem auto;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-radius: var(--joy-radius-sm);
+  box-shadow: var(--joy-shadow-md);
+}
+
+.login-button {
+  margin-top: 0.5rem;
+}
+
+
+.mode-toggle {
+  width: max-content;
+  margin: 1rem auto;
+}
