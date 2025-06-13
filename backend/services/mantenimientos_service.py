@@ -10,6 +10,8 @@ def agregar_mantenimiento(mantenimiento):
         cursor = connection.cursor()
         cursor.execute(query, values)
         connection.commit()
+
+        
 def eliminar_mantenimiento(mantenimiento_id):
     query = """DELETE FROM mantenimientos WHERE id = %s"""
     values = (mantenimiento_id,)
@@ -18,6 +20,8 @@ def eliminar_mantenimiento(mantenimiento_id):
         cursor = connection.cursor()
         cursor.execute(query, values)
         connection.commit()
+
+
 def modificar_mantenimiento(mantenimiento):
     query = """UPDATE mantenimientos SET fecha = %s, descripcion = %s, tecnico_id = %s, maquina_id = %s 
                WHERE id = %s"""
