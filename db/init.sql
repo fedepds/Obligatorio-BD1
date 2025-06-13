@@ -5,22 +5,22 @@ CREATE TABLE IF NOT EXISTS login (
     password VARCHAR(100) NOT NULL,
     es_administrador BOOLEAN NOT NULL DEFAULT 0
 );
--- correo ya es único por ser PRIMARY KEY
+
 
 -- TABLA PROVEEDORES
 CREATE TABLE IF NOT EXISTS proveedores (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    contacto VARCHAR(100) UNIQUE
+    nombre VARCHAR(50) NOT NULL,
+    contacto VARCHAR(50) NOT NULL
 );
 
 -- TABLA INSUMOS
 CREATE TABLE IF NOT EXISTS insumos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     descripcion VARCHAR(100) NOT NULL,
-    tipo VARCHAR(50),
+    tipo VARCHAR(50) NOT NULL, 
     precio_unitario DECIMAL(10,2) NOT NULL,
-    id_proveedor INT,
+    id_proveedor INT NOT NULL,
     FOREIGN KEY (id_proveedor) REFERENCES proveedores(id)
 );
 
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS maquinas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     modelo VARCHAR(100) NOT NULL,
     id_cliente INT,
-    ubicacion_cliente VARCHAR(100),
+    ubicacion_cliente VARCHAR(100) NOT NULL,
     costo_alquiler_mensual DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (id_cliente) REFERENCES clientes(id)
 );
@@ -47,9 +47,9 @@ CREATE TABLE IF NOT EXISTS maquinas (
 
 -- TABLA TECNICOS
 CREATE TABLE IF NOT EXISTS tecnicos (
-    ci VARCHAR(20) PRIMARY KEY,
-    nombre VARCHAR(100),
-    apellido VARCHAR(100),
+    ci VARCHAR(20) PRIMARY KEY NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
     telefono VARCHAR(20) UNIQUE
 );
 
@@ -57,9 +57,9 @@ CREATE TABLE IF NOT EXISTS tecnicos (
 CREATE TABLE IF NOT EXISTS mantenimientos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_maquina INT,
-    ci_tecnico VARCHAR(20),
-    tipo VARCHAR(50),
-    fecha DATETIME,
+    ci_tecnico VARCHAR(20) NOT NULL, -- Fede no permitimos CI nulas, vamos a usarlas para eliminar a los técnicos
+    tipo VARCHAR(50) NOT NULL, 
+    fecha DATE, --cambio a date ya que la hora no nos sirve en este caso
     observaciones TEXT,
     FOREIGN KEY (id_maquina) REFERENCES maquinas(id),
     FOREIGN KEY (ci_tecnico) REFERENCES tecnicos(ci)
@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS registro_consumo (
     FOREIGN KEY (id_insumo) REFERENCES insumos(id)
 );
 
+--Insertamos datos de ejemplos 
 
 INSERT INTO login (correo, password, es_administrador) VALUES
 ('admin@cafesmarloy.com', 'admin123', 1),
@@ -130,12 +131,12 @@ INSERT INTO tecnicos (ci, nombre, apellido, telefono) VALUES
 ('38991231', 'Juan', 'Martínez', '096112233');
 
 INSERT INTO mantenimientos (id_maquina, ci_tecnico, tipo, fecha, observaciones) VALUES
-(1, '35899012', 'Preventivo', '2024-05-10 10:30:00', 'Cambio de filtros y limpieza general'),
-(2, '40111222', 'Correctivo', '2024-05-12 14:00:00', 'Reemplazo de bomba de agua'),
-(3, '43322110', 'Preventivo', '2024-05-18 09:15:00', 'Chequeo eléctrico y prueba de funcionamiento'),
-(4, '41222333', 'Correctivo', '2024-05-22 16:30:00', 'Reparación de válvula de vapor'),
-(5, '42131415', 'Preventivo', '2024-05-25 11:00:00', 'Limpieza y revisión de insumos'),
-(6, '38991231', 'Correctivo', '2024-05-27 13:45:00', 'Ajuste de termostato y prueba final');
+(1, '35899012', 'Preventivo', '2024-05-10 ', 'Cambio de filtros y limpieza general'),
+(2, '40111222', 'Correctivo', '2024-05-12 ', 'Reemplazo de bomba de agua'),
+(3, '43322110', 'Preventivo', '2024-05-18 ', 'Chequeo eléctrico y prueba de funcionamiento'),
+(4, '41222333', 'Correctivo', '2024-05-22 ', 'Reparación de válvula de vapor'),
+(5, '42131415', 'Preventivo', '2024-05-25 ', 'Limpieza y revisión de insumos'),
+(6, '38991231', 'Correctivo', '2024-05-27 ', 'Ajuste de termostato y prueba final');
 
 INSERT INTO registro_consumo (id_maquina, id_insumo, fecha, cantidad_usada) VALUES
 (1, 1, '2024-05-01', 12.50),

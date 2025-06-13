@@ -1,7 +1,7 @@
 
 from flask import Flask, jsonify
 import mysql.connector
-from dotenv import load_dotenv
+from dotenv import load_dotenv #de donde estas cargando esto fede?
 import os
 
 # Cargar variables de entorno desde .env
