@@ -8,4 +8,5 @@ class proveedores:
     
 
     def __repr__(self):
-        return (f"Proveedor(nombre={self.nombre}, contacto={self.contacto})")
+        return (f"Proveedor(id={self.id}, nombre={self.nombre}, contacto={self.contacto})")
+    #
