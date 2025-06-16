@@ -1,7 +1,7 @@
 
 from flask import Flask, jsonify
 import mysql.connector
-from dotenv import load_dotenv
+from dotenv import load_dotenv 
 import os
 
 # Cargar variables de entorno desde .env
@@ -31,6 +31,13 @@ def obtener_clientes():
     cursor.close()
     conn.close()
     return jsonify(clientes)
+
+@app.route('/insumo',methods=['GET'])
+def obtener_insumos():
+    conn=get_db_connection()
+    
+
+
 
 # Ruta raíz de prueba
 @app.route('/')

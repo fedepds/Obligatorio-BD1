@@ -10,6 +10,6 @@ services:
       MYSQL_USER: cafesuser
       MYSQL_PASSWORD: cafespass
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
