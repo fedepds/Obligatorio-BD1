@@ -1,5 +1,5 @@
 from datetime import datetime, date
-class clientes:
+class Cliente:
     def __init__(self,ci,nombre,apellido,direccion,fecha_nacimiento,telefono,correo_electronico):
 
         self.ci = ci
@@ -16,6 +16,4 @@ class clientes:
    
 
     def __repr__(self):
-        return (f"cliente(ci={self.ci}, nombre={self.nombre}, apellido={self.apellido}, "
-                f"fecha_nacimiento={self.fecha_nacimiento}, telefono={self.telefono}, "
-                f"correo_electronico={self.correo})")
+        return (f"Cliente(ci={self.ci}, nombre={self.nombre}, apellido={self.apellido},fecha_nacimiento={self.fecha_nacimiento}, telefono={self.telefono}, correo_electronico={self.correo})")

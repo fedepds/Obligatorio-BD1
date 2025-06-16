@@ -32,6 +32,13 @@ def obtener_clientes():
     conn.close()
     return jsonify(clientes)
 
+@app.route('/insumo',methods=['GET'])
+def obtener_insumos():
+    conn=get_db_connection()
+    
+
+
+
 # Ruta raíz de prueba
 @app.route('/')
 def home():
