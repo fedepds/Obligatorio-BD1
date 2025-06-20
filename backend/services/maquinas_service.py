@@ -1,4 +1,4 @@
-from backend.dominio import maquinas
+from backend.dominio import Maquina
 from backend.connection import DatabaseConnection
 def agregar_maquina(maquina):
     query = """INSERT INTO maquinas (nombre, descripcion, cantidad, precio, proveedor_id) 
