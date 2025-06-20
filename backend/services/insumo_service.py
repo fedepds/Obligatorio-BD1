@@ -20,13 +20,3 @@ def eliminar_insumo(insumo_id):
         cursor = connection.cursor()
         cursor.execute(query, values)
         connection.commit()
-
-def modificar_insumo(insumo):
-    query = """UPDATE insumos SET nombre = %s, descripcion = %s, cantidad = %s, precio = %s, proveedor_id = %s 
-               WHERE id = %s"""
-    values = (insumo.nombre, insumo.descripcion, insumo.cantidad, insumo.precio, insumo.proveedor_id, insumo.id)
-    
-    with DatabaseConnection() as connection:
-        cursor = connection.cursor()
-        cursor.execute(query, values)
-        connection.commit()
