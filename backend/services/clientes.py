@@ -1,4 +1,4 @@
-from backend.dominio.cliente import clientes
+from backend.dominio.Cliente import Cliente
 from backend.connection import DatabaseConnection
 from backend.validadors import validador_cliente
 def agregar_cliente(cliente):
@@ -24,10 +24,10 @@ def eliminar_cliente(cliente_ci):
         cursor.execute(query, values)
         connection.commit()
 
-def modificar_cliente(cliente):
+def modificar_cliente(cliente,nuevos_datos):
     query = """UPDATE clientes SET nombre = %s, apellido = %s, direccion = %s, telefono = %s, correo_electronico = %s 
                WHERE ci = %s"""
-    values = (cliente.nombre, cliente.apellido, cliente.direccion, cliente.telefono, cliente.correo, cliente.ci)
+    values = (nuevos_datos.nombre, nuevos_datos.apellido, nuevos_datos.direccion, nuevos_datos.telefono, nuevos_datos.correo, cliente.ci)
     
     with DatabaseConnection() as connection:
         cursor = connection.cursor()

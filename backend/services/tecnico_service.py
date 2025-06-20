@@ -1,4 +1,4 @@
-from backend.dominio import tecnico
+from backend.dominio import Tecnico
 from backend.connection import DatabaseConnection
 
 def agregar_tecnico(tecnico):
