@@ -1,3 +1,4 @@
+from backend.dominio import Registro_consumo
 from connection import DatabaseConnection
 
 def registrar_consumo(registro_consumo):
