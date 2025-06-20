@@ -1,4 +1,4 @@
-from backend.dominio import mantenimientos
+from backend.dominio import Mantenimiento
 from backend.connection import DatabaseConnection
 
 def agregar_mantenimiento(mantenimiento):

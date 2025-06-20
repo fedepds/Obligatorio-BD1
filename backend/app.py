@@ -35,8 +35,36 @@ def obtener_clientes():
 @app.route('/insumo',methods=['GET'])
 def obtener_insumos():
     conn=get_db_connection()
-    
+    cursor=conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM insumos")
+    insumos=cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(insumos)
 
+@app.route('/mantenimiento',methods=['GET'])
+def obtener_mantenimientos():
+    conn=get_db_connection()
+    cursor=conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM mantenimientos")
+    mantenimientos=cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(mantenimientos)
+    
+@app.route('/login',methods=['GET'])
+def obtener_usuarios():
+    conn=get_db_connection()
+    cursor=conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM login")
+    usuarios=cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(usuarios)
+
+# Ruta para agregar un cliente (ejemplo)
+@app.route('/clientes/agregar', methods=['POST'])
+def agregar_cliente():
 
 
 # Ruta raíz de prueba
