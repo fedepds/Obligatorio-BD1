@@ -1,5 +1,5 @@
 #Vamos a utilizar la misma estructura de clientes ? puedo crear una estructura para proveedores ya que tienen distintos campos
-from backend.dominio import proveedores
+from backend.dominio import Proveedor
 from backend.connection import DatabaseConnection
 def agregar_proveedores(clientes):
     query = """INSERT INTO proveedores (ci, nombre, apellido, direccion, fecha_nacimiento, telefono, correo_electronico) 
@@ -20,11 +20,11 @@ def eliminar_proveedor(ci):
         cursor.execute(query, values)
         connection.commit()
 
-def modificar_proveedores(clientes):
+def modificar_proveedores(proveedores, nuevos_datos_proveedor):
     query= """UPDATE proveedores SET nombre = %s, apellido = %s, direccion = %s, fecha_nacimiento = %s, telefono = %s, correo_electronico = %s
               WHERE ci = %s"""
-    values= (clientes.nombre, clientes.apellido, clientes.direccion,
-              clientes.fecha_nacimiento, clientes.telefono, clientes.correo, clientes.ci)
+    values= (nuevos_datos_proveedor.nombre, nuevos_datos_proveedor.apellido, nuevos_datos_proveedor.direccion,
+              nuevos_datos_proveedor.fecha_nacimiento, nuevos_datos_proveedor.telefono, nuevos_datos_proveedor.correo, proveedores.ci)
     with DatabaseConnection() as connection:
         cursor = connection.cursor()
         cursor.execute(query, values)
@@ -38,7 +38,7 @@ def obtener_proveedores(): ##revisar
         rows = cursor.fetchall()
         proveedores_list = []
         for row in rows:
-            proveedor = proveedores.Proveedor(
+            proveedor = proveedor.Proveedor(
                 ci=row[0],
                 nombre=row[1],
                 apellido=row[2],
