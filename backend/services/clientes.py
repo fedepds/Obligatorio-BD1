@@ -1,6 +1,6 @@
 from backend.dominio import Cliente
 from backend.connection import DatabaseConnection
-from backend.validadors import validador_cliente
+
 def agregar_cliente(cliente):
     
  #   if not validador_cliente.es_valido(cliente):
