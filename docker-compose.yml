@@ -13,3 +13,13 @@ services:
       - "3307:3306"
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - cafes_marloy_data:/var/lib/mysql  # Persistencia de datos
+    networks:
+      - cafes_network
+
+volumes:
+  cafes_marloy_data:
+
+networks:
+  cafes_network:
+    driver: bridge

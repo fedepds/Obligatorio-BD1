@@ -1,11 +1,11 @@
 USE cafes_marloy;
+
 -- TABLA LOGIN
 CREATE TABLE IF NOT EXISTS login (
     correo VARCHAR(100) PRIMARY KEY,
     password VARCHAR(100) NOT NULL,
     es_administrador BOOLEAN NOT NULL DEFAULT 0
 );
-
 
 -- TABLA PROVEEDORES
 CREATE TABLE IF NOT EXISTS proveedores (
@@ -18,12 +18,11 @@ CREATE TABLE IF NOT EXISTS proveedores (
 CREATE TABLE IF NOT EXISTS insumos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     descripcion VARCHAR(100) NOT NULL,
-    tipo VARCHAR(50) NOT NULL, 
+    tipo VARCHAR(50) NOT NULL,
     precio_unitario DECIMAL(10,2) NOT NULL,
     id_proveedor INT NOT NULL,
-    FOREIGN KEY (id_proveedor) REFERENCES proveedores(id)
+    FOREIGN KEY (id_proveedor) REFERENCES proveedores(id) ON DELETE RESTRICT
 );
-
 
 -- TABLA CLIENTES
 CREATE TABLE IF NOT EXISTS clientes (
@@ -41,9 +40,8 @@ CREATE TABLE IF NOT EXISTS maquinas (
     id_cliente INT,
     ubicacion_cliente VARCHAR(100) NOT NULL,
     costo_alquiler_mensual DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (id_cliente) REFERENCES clientes(id)
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id) ON DELETE SET NULL
 );
-
 
 -- TABLA TECNICOS
 CREATE TABLE IF NOT EXISTS tecnicos (
@@ -57,12 +55,12 @@ CREATE TABLE IF NOT EXISTS tecnicos (
 CREATE TABLE IF NOT EXISTS mantenimientos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_maquina INT,
-    ci_tecnico VARCHAR(20) NOT NULL, -- Fede no permitimos CI nulas, vamos a usarlas para eliminar a los técnicos
-    tipo VARCHAR(50) NOT NULL, 
-    fecha DATE, --cambio a date ya que la hora no nos sirve en este caso
+    ci_tecnico VARCHAR(20) NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    fecha DATE NOT NULL,
     observaciones TEXT,
-    FOREIGN KEY (id_maquina) REFERENCES maquinas(id),
-    FOREIGN KEY (ci_tecnico) REFERENCES tecnicos(ci)
+    FOREIGN KEY (id_maquina) REFERENCES maquinas(id) ON DELETE CASCADE,
+    FOREIGN KEY (ci_tecnico) REFERENCES tecnicos(ci) ON DELETE RESTRICT
 );
 
 -- TABLA REGISTRO_CONSUMO
@@ -70,13 +68,13 @@ CREATE TABLE IF NOT EXISTS registro_consumo (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_maquina INT,
     id_insumo INT,
-    fecha DATE,
-    cantidad_usada DECIMAL(10,2),
-    FOREIGN KEY (id_maquina) REFERENCES maquinas(id),
-    FOREIGN KEY (id_insumo) REFERENCES insumos(id)
+    fecha DATE NOT NULL,
+    cantidad_usada DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (id_maquina) REFERENCES maquinas(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_insumo) REFERENCES insumos(id) ON DELETE RESTRICT
 );
 
---Insertamos datos de ejemplos 
+-- Insertamos datos de ejemplos
 
 INSERT INTO login (correo, password, es_administrador) VALUES
 ('admin@cafesmarloy.com', 'admin123', 1),
@@ -86,7 +84,6 @@ INSERT INTO login (correo, password, es_administrador) VALUES
 ('usuario2@outlook.com', 'userpass', 0),
 ('gestion@cafesmarloy.com', 'gestion2024', 1);
 
-
 INSERT INTO proveedores (nombre, contacto) VALUES
 ('Proveedora Latina', 'latina@proveedores.com'),
 ('Insumos del Sur', 'contacto@delsur.com'),
@@ -94,7 +91,6 @@ INSERT INTO proveedores (nombre, contacto) VALUES
 ('Sabores Únicos', 'sabores@unicos.com'),
 ('Soluciones Bebidas', 'info@solbeb.com'),
 ('Distribuidora Oriental', 'oriental@dist.com');
-
 
 INSERT INTO insumos (descripcion, tipo, precio_unitario, id_proveedor) VALUES
 ('Café molido premium', 'Café', 350.00, 1),
@@ -112,7 +108,6 @@ INSERT INTO clientes (nombre, direccion, telefono, correo) VALUES
 ('Colegio Moderno', 'Av. Italia 321, Montevideo', '096445566', 'info@colegiomoderno.edu.uy'),
 ('Residencial Los Pinos', 'Camino Rural 14, Florida', '097667788', 'pinos@residencial.com');
 
-
 INSERT INTO maquinas (modelo, id_cliente, ubicacion_cliente, costo_alquiler_mensual) VALUES
 ('M200', 1, 'Hall principal', 2500.00),
 ('M300', 1, 'Cafetería', 2700.00),
@@ -120,7 +115,6 @@ INSERT INTO maquinas (modelo, id_cliente, ubicacion_cliente, costo_alquiler_mens
 ('Pro200', 3, 'Sala de espera', 2200.00),
 ('PlusX', 4, 'Comedor', 1950.00),
 ('M200', 5, 'Biblioteca', 2500.00);
-
 
 INSERT INTO tecnicos (ci, nombre, apellido, telefono) VALUES
 ('35899012', 'Ana', 'Pérez', '099100200'),
@@ -131,12 +125,12 @@ INSERT INTO tecnicos (ci, nombre, apellido, telefono) VALUES
 ('38991231', 'Juan', 'Martínez', '096112233');
 
 INSERT INTO mantenimientos (id_maquina, ci_tecnico, tipo, fecha, observaciones) VALUES
-(1, '35899012', 'Preventivo', '2024-05-10 ', 'Cambio de filtros y limpieza general'),
-(2, '40111222', 'Correctivo', '2024-05-12 ', 'Reemplazo de bomba de agua'),
-(3, '43322110', 'Preventivo', '2024-05-18 ', 'Chequeo eléctrico y prueba de funcionamiento'),
-(4, '41222333', 'Correctivo', '2024-05-22 ', 'Reparación de válvula de vapor'),
-(5, '42131415', 'Preventivo', '2024-05-25 ', 'Limpieza y revisión de insumos'),
-(6, '38991231', 'Correctivo', '2024-05-27 ', 'Ajuste de termostato y prueba final');
+(1, '35899012', 'Preventivo', '2024-05-10', 'Cambio de filtros y limpieza general'),
+(2, '40111222', 'Correctivo', '2024-05-12', 'Reemplazo de bomba de agua'),
+(3, '43322110', 'Preventivo', '2024-05-18', 'Chequeo eléctrico y prueba de funcionamiento'),
+(4, '41222333', 'Correctivo', '2024-05-22', 'Reparación de válvula de vapor'),
+(5, '42131415', 'Preventivo', '2024-05-25', 'Limpieza y revisión de insumos'),
+(6, '38991231', 'Correctivo', '2024-05-27', 'Ajuste de termostato y prueba final');
 
 INSERT INTO registro_consumo (id_maquina, id_insumo, fecha, cantidad_usada) VALUES
 (1, 1, '2024-05-01', 12.50),
