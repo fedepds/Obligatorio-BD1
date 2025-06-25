@@ -15,6 +15,18 @@ def get_db_connection():
     )
     return connection
 
+class DatabaseConnection:
+    def __init__(self):
+        self.connection = None
+    
+    def __enter__(self):
+        self.connection = get_db_connection()
+        return self.connection
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.connection:
+            self.connection.close()
+
 # Prueba rápida de conexión
 if __name__ == "__main__":
     try:
