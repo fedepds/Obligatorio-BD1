@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
-  agregarProveedor,
-  obtenerProveedores,
-  modificarProveedor,
-  eliminarProveedor,
+  obtenerInsumos,
+  agregarInsumo,
+  modificarInsumo,
+  eliminarInsumo,
 } from "../api";
 import {
   Button,
@@ -21,83 +20,80 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
-import { Add, Edit, Delete, Business } from "@mui/icons-material";
+import { Add, Edit, Delete, Inventory } from "@mui/icons-material";
 
-const Proveedores = () => {
-  const navigate = useNavigate();
-  const [proveedores, setProveedores] = useState([]);
+const Insumos = () => {
+  const [insumos, setInsumos] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState("agregar");
-  const [proveedorActual, setProveedorActual] = useState({
-    nombre: "",
-    contacto: "",
-    id: "", // solo para uso interno
+  const [insumoActual, setInsumoActual] = useState({
+    descripcion: "",
+    tipo: "",
+    precio_unitario: "",
+    id_proveedor: "",
+    id: "",
   });
 
   useEffect(() => {
-    const fetchProveedores = async () => {
-      const proveedoresData = await obtenerProveedores();
-      setProveedores(proveedoresData);
+    const fetchInsumos = async () => {
+      const data = await obtenerInsumos();
+      setInsumos(data);
     };
-    fetchProveedores();
+    fetchInsumos();
   }, []);
 
   const abrirModalAgregar = () => {
-    setProveedorActual({
-      nombre: "",
-      contacto: "",
+    setInsumoActual({
+      descripcion: "",
+      tipo: "",
+      precio_unitario: "",
+      id_proveedor: "",
       id: "",
     });
     setModalMode("agregar");
     setShowModal(true);
   };
 
-  const abrirModalModificar = (proveedor) => {
-    setProveedorActual(proveedor);
+  const abrirModalModificar = (insumo) => {
+    setInsumoActual(insumo);
     setModalMode("modificar");
     setShowModal(true);
   };
 
-  const cerrarModal = () => {
-    setShowModal(false);
-  };
+  const cerrarModal = () => setShowModal(false);
 
   const handleChange = (e) => {
-    setProveedorActual({
-      ...proveedorActual,
+    setInsumoActual({
+      ...insumoActual,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleAgregar = async (nuevoProveedor) => {
-    await agregarProveedor(nuevoProveedor);
-    const proveedoresData = await obtenerProveedores();
-    setProveedores(proveedoresData);
+  const handleAgregar = async (nuevoInsumo) => {
+    await agregarInsumo(nuevoInsumo);
+    setInsumos(await obtenerInsumos());
   };
 
   const handleModificar = async (id, nuevosDatos) => {
-    await modificarProveedor(id, nuevosDatos);
-    const proveedoresData = await obtenerProveedores();
-    setProveedores(proveedoresData);
+    await modificarInsumo(id, nuevosDatos);
+    setInsumos(await obtenerInsumos());
   };
 
   const handleEliminar = async (id) => {
-    await eliminarProveedor(id);
-    const proveedoresData = await obtenerProveedores();
-    setProveedores(proveedoresData);
+    await eliminarInsumo(id);
+    setInsumos(await obtenerInsumos());
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (modalMode === "agregar") {
-      await handleAgregar({
-        nombre: proveedorActual.nombre,
-        contacto: proveedorActual.contacto,
-      });
+      await handleAgregar(insumoActual);
     } else {
-      await handleModificar(proveedorActual.id, {
-        nombre: proveedorActual.nombre,
-        contacto: proveedorActual.contacto,
+      await handleModificar(insumoActual.id, {
+        descripcion: insumoActual.descripcion,
+        tipo: insumoActual.tipo,
+        precio_unitario: insumoActual.precio_unitario,
+        id_proveedor: insumoActual.id_proveedor,
       });
     }
     setShowModal(false);
@@ -115,35 +111,39 @@ const Proveedores = () => {
           }}
         >
           <Typography variant="h4" component="h1" gutterBottom>
-            Gestión de Proveedores
+            Gestión de Insumos
           </Typography>
           <Button
             variant="contained"
             color="primary"
-            startIcon={<Business />}
+            startIcon={<Inventory />}
             onClick={abrirModalAgregar}
           >
-            Agregar Proveedor
+            Agregar Insumo
           </Button>
         </Box>
 
         <Grid container spacing={2}>
-          {proveedores.map((proveedor) => (
-            <Grid key={proveedor.id}>
-              <Card elevation={2} sx={{ height: "100%" }}>
+          {insumos.map((insumo) => (
+            <Grid item key={insumo.id} xs={12} sm={6} md={4}>
+              <Card elevation={2}>
                 <CardContent>
-                  <Typography variant="h6" component="div">
-                    {proveedor.nombre}
+                  <Typography variant="h6">{insumo.descripcion}</Typography>
+                  <Typography color="text.secondary">
+                    Tipo: {insumo.tipo}
                   </Typography>
                   <Typography color="text.secondary">
-                    Contacto: {proveedor.contacto}
+                    Precio: {insumo.precio_unitario}
+                  </Typography>
+                  <Typography color="text.secondary">
+                    Proveedor: {insumo.id_proveedor}
                   </Typography>
                   <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 1 }}>
                     <Button
                       size="small"
                       startIcon={<Edit />}
                       variant="outlined"
-                      onClick={() => abrirModalModificar(proveedor)}
+                      onClick={() => abrirModalModificar(insumo)}
                     >
                       Modificar
                     </Button>
@@ -152,7 +152,7 @@ const Proveedores = () => {
                       startIcon={<Delete />}
                       variant="outlined"
                       color="error"
-                      onClick={() => handleEliminar(proveedor.id)}
+                      onClick={() => handleEliminar(insumo.id)}
                     >
                       Eliminar
                     </Button>
@@ -163,22 +163,29 @@ const Proveedores = () => {
           ))}
         </Grid>
 
-        {/* Dialog para agregar/modificar proveedor */}
+        {/* Modal para agregar/modificar insumo */}
         <Dialog open={showModal} onClose={cerrarModal} fullWidth maxWidth="sm">
           <DialogTitle>
-            {modalMode === "agregar"
-              ? "Agregar Proveedor"
-              : "Modificar Proveedor"}
+            {modalMode === "agregar" ? "Agregar Insumo" : "Modificar Insumo"}
           </DialogTitle>
           <form onSubmit={handleSubmit}>
             <DialogContent>
-              <Box
-                sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
-              >
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+                {modalMode === "modificar" && (
+                  <TextField
+                    label="ID"
+                    name="id"
+                    value={insumoActual.id}
+                    InputProps={{ readOnly: true }}
+                    fullWidth
+                    variant="outlined"
+                    margin="dense"
+                  />
+                )}
                 <TextField
-                  label="Nombre"
-                  name="nombre"
-                  value={proveedorActual.nombre}
+                  label="Descripción"
+                  name="descripcion"
+                  value={insumoActual.descripcion}
                   onChange={handleChange}
                   required
                   fullWidth
@@ -186,14 +193,38 @@ const Proveedores = () => {
                   margin="dense"
                 />
                 <TextField
-                  label="Contacto"
-                  name="contacto"
-                  value={proveedorActual.contacto}
+                  label="Tipo"
+                  name="tipo"
+                  value={insumoActual.tipo}
                   onChange={handleChange}
                   required
                   fullWidth
                   variant="outlined"
                   margin="dense"
+                />
+                <TextField
+                  label="Precio Unitario"
+                  name="precio_unitario"
+                  type="number"
+                  value={insumoActual.precio_unitario}
+                  onChange={handleChange}
+                  required
+                  fullWidth
+                  variant="outlined"
+                  margin="dense"
+                  inputProps={{ min: 0, step: "0.01" }}
+                />
+                <TextField
+                  label="ID Proveedor"
+                  name="id_proveedor"
+                  type="number"
+                  value={insumoActual.id_proveedor}
+                  onChange={handleChange}
+                  required
+                  fullWidth
+                  variant="outlined"
+                  margin="dense"
+                  inputProps={{ min: 0 }}
                 />
               </Box>
             </DialogContent>
@@ -208,8 +239,8 @@ const Proveedores = () => {
           </form>
         </Dialog>
 
-        {/* Mensaje cuando no hay proveedores */}
-        {proveedores.length === 0 && (
+        {/* Mensaje cuando no hay insumos */}
+        {insumos.length === 0 && (
           <Box
             sx={{
               display: "flex",
@@ -220,7 +251,7 @@ const Proveedores = () => {
             }}
           >
             <Typography variant="h6" color="text.secondary">
-              No hay proveedores registrados
+              No hay insumos registrados
             </Typography>
             <Button
               variant="outlined"
@@ -228,7 +259,7 @@ const Proveedores = () => {
               onClick={abrirModalAgregar}
               sx={{ mt: 2 }}
             >
-              Agregar nuevo proveedor
+              Agregar nuevo insumo
             </Button>
           </Box>
         )}
@@ -237,4 +268,4 @@ const Proveedores = () => {
   );
 };
 
-export default Proveedores;
+export default Insumos;

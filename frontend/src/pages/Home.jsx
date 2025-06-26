@@ -15,6 +15,7 @@ import {
   Person,
   Inventory,
   Receipt,
+  BarChart, // Importa un ícono para reportes
 } from "@mui/icons-material";
 
 const Home = () => {
@@ -140,6 +141,27 @@ const Home = () => {
           >
             Gestión de Mantenimiento
           </Button>
+
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() => navigate("/reportes")}
+            startIcon={<BarChart />}
+            size="large"
+            sx={{ py: 1.5 }}
+          >
+            Reportes
+          </Button>
+          <Button
+          variant="contained"
+          fullWidth
+          onClick={() => navigate("/insumos")}
+          startIcon={<Inventory />}
+          size="large"
+          sx={{ py: 1.5 }}
+        >
+          Gestión de Insumos
+        </Button>
         </Stack>
       </Paper>
     </Container>

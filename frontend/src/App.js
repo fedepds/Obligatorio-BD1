@@ -7,6 +7,8 @@ import Mantenimiento from "./pages/Mantenimiento";
 import Proveedores from "./pages/Proveedores";
 import Tecnicos from "./pages/Tecnicos";
 import Maquinas from "./pages/Maquinas";
+import Reportes from "./pages/Reportes";
+import Insumos from "./pages/Insumos";
 
 
 function App() {
@@ -20,6 +22,10 @@ function App() {
         <Route path="/proveedores" element={<Proveedores />} />
         <Route path="/tecnicos" element={<Tecnicos />} />
         <Route path="/maquinas" element={<Maquinas/>}></Route>
+        <Route path={"/reportes"} element={<Reportes/>}/>
+        <Route path={"/insumos"} element={<Insumos/>}/>
+        <Route path="*" element={<LoginFinal />} />
+
 
       </Routes>
     </BrowserRouter>
