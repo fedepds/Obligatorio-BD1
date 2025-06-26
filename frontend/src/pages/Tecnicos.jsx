@@ -32,7 +32,6 @@ const Tecnicos = () => {
   const [tecnicoActual, setTecnicoActual] = useState({
     ci: "",
     nombre: "",
-    especialidad: "",
     telefono: "",
   });
 
@@ -65,7 +64,6 @@ const Tecnicos = () => {
     setTecnicoActual({
       ci: "",
       nombre: "",
-      especialidad: "",
       telefono: "",
     });
     setModalMode("agregar");
@@ -135,9 +133,6 @@ const Tecnicos = () => {
                     CI: {tecnico.ci}
                   </Typography>
                   <Typography color="text.secondary">
-                    Especialidad: {tecnico.especialidad}
-                  </Typography>
-                  <Typography color="text.secondary">
                     Teléfono: {tecnico.telefono}
                   </Typography>
                   <Box
@@ -203,16 +198,7 @@ const Tecnicos = () => {
                   variant="outlined"
                   margin="dense"
                 />
-                <TextField
-                  label="Especialidad"
-                  name="especialidad"
-                  value={tecnicoActual.especialidad}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                />
+
                 <TextField
                   label="Teléfono"
                   name="telefono"

@@ -26,109 +26,115 @@ const peticionAPI = async (endpoint, method = "GET", body = null) => {
   }
 };
 
-// ---------------- CLIENTES ----------------
-
-export const obtenerClientes = () => peticionAPI("/clientes");
-
-export const agregarCliente = (cliente) =>
-  peticionAPI("/clientes/agregar", "POST", cliente);
-
-// ---------------- INSUMOS ----------------
-
-export const obtenerInsumos = () => peticionAPI("/insumo");
-
-export const agregarInsumo = (insumo) =>
-  peticionAPI("/insumos", "POST", insumo);
-
-export const modificarInsumo = (id, nuevosDatos) =>
-  peticionAPI(`/insumos/${id}`, "PUT", nuevosDatos);
-
-export const eliminarInsumo = (id) => peticionAPI(`/insumos/${id}`, "DELETE");
-
 // ---------------- USUARIOS ----------------
 
-export const registrarUsuario = (
-  correo,
-  contraseña,
-  es_administrador = false
-) =>
-  peticionAPI("/login/registrar", "POST", {
+export const registrarUsuario = (correo, password, es_administrador = false) =>
+  peticionAPI("/api/usuarios", "POST", {
     correo,
-    contraseña,
+    password,
     es_administrador,
   });
 
-  export const loginUsuario = async (correo, contraseña) => {
-    try {
-      const response = await fetch(`${API_URL}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ correo, contraseña }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Credenciales incorrectas");
-      }
+export const loginUsuario = (correo, contraseña) =>
+  peticionAPI("/api/usuarios/login", "POST", { correo, contraseña });
 
-      // Guardar el token en el almacenamiento local después del login
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
-      return data;
-    } catch (error) {
-      console.error("Error en loginUsuario:", error);
-      throw error;
-    }
-  };
+export const obtenerUsuarios = () => peticionAPI("/api/usuarios");
 
-// ---------------- MANTENIMIENTOS ----------------
+// ---------------- CLIENTES ----------------
 
-export const obtenerMantenimientos = () => peticionAPI("/mantenimiento");
+export const obtenerClientes = () => peticionAPI("/api/clientes");
 
-export const agregarMantenimiento = (mantenimiento) =>
-  peticionAPI("/mantenimientos", "POST", mantenimiento);
+export const agregarCliente = (cliente) =>
+  peticionAPI("/api/clientes", "POST", cliente);
 
-export const modificarMantenimiento = (id, nuevosDatos) =>
-  peticionAPI(`/mantenimientos/${id}`, "PUT", nuevosDatos);
+export const modificarCliente = (ci, nuevosDatos) =>
+  peticionAPI(`/api/clientes/${ci}`, "PUT", nuevosDatos);
 
-export const eliminarMantenimiento = (id) =>
-  peticionAPI(`/mantenimientos/${id}`, "DELETE");
+export const eliminarCliente = (ci) =>
+  peticionAPI(`/api/clientes/${ci}`, "DELETE");
 
 // ---------------- PROVEEDORES ----------------
 
-export const obtenerProveedores = () => peticionAPI("/proveedores");
+export const obtenerProveedores = () => peticionAPI("/api/proveedores");
 
 export const agregarProveedor = (proveedor) =>
-  peticionAPI("/proveedores", "POST", proveedor);
+  peticionAPI("/api/proveedores", "POST", proveedor);
 
-export const modificarProveedor = (ci, nuevosDatos) =>
-  peticionAPI(`/proveedores/${ci}`, "PUT", nuevosDatos);
+export const modificarProveedor = (id, nuevosDatos) =>
+  peticionAPI(`/api/proveedores/${id}`, "PUT", nuevosDatos);
 
-export const eliminarProveedor = (ci) =>
-  peticionAPI(`/proveedores/${ci}`, "DELETE");
+export const eliminarProveedor = (id) =>
+  peticionAPI(`/api/proveedores/${id}`, "DELETE");
 
-// ---------------- REGISTRO CONSUMO ----------------
+// ---------------- INSUMOS ----------------
 
-export const obtenerRegistrosConsumo = () => peticionAPI("/registro_consumo");
+export const obtenerInsumos = () => peticionAPI("/api/insumos");
 
-export const agregarRegistroConsumo = (registro) =>
-  peticionAPI("/registro_consumo", "POST", registro);
+export const agregarInsumo = (insumo) =>
+  peticionAPI("/api/insumos", "POST", insumo);
 
-export const modificarRegistroConsumo = (id, nuevosDatos) =>
-  peticionAPI(`/registro_consumo/${id}`, "PUT", nuevosDatos);
+export const modificarInsumo = (codigo, nuevosDatos) =>
+  peticionAPI(`/api/insumos/${codigo}`, "PUT", nuevosDatos);
 
-export const eliminarRegistroConsumo = (id) =>
-  peticionAPI(`/registro_consumo/${id}`, "DELETE");
+export const eliminarInsumo = (codigo) =>
+  peticionAPI(`/api/insumos/${codigo}`, "DELETE");
 
 // ---------------- TÉCNICOS ----------------
 
-export const obtenerTecnicos = () => peticionAPI("/tecnicos");
+export const obtenerTecnicos = () => peticionAPI("/api/tecnicos");
 
 export const agregarTecnico = (tecnico) =>
-  peticionAPI("/tecnicos", "POST", tecnico);
+  peticionAPI("/api/tecnicos", "POST", tecnico);
 
-export const modificarTecnico = (ci, nuevosDatos) =>
-  peticionAPI(`/tecnicos/${ci}`, "PUT", nuevosDatos);
+export const modificarTecnico = (id, nuevosDatos) =>
+  peticionAPI(`/api/tecnicos/${id}`, "PUT", nuevosDatos);
 
-export const eliminarTecnico = (ci) => peticionAPI(`/tecnicos/${ci}`, "DELETE");
+export const eliminarTecnico = (id) =>
+  peticionAPI(`/api/tecnicos/${id}`, "DELETE");
+
+// ---------------- MANTENIMIENTOS ----------------
+
+export const obtenerMantenimientos = () => peticionAPI("/api/mantenimientos");
+
+export const agregarMantenimiento = (mantenimiento) =>
+  peticionAPI("/api/mantenimientos", "POST", mantenimiento);
+
+export const modificarMantenimiento = (id, nuevosDatos) =>
+  peticionAPI(`/api/mantenimientos/${id}`, "PUT", nuevosDatos);
+
+export const eliminarMantenimiento = (id) =>
+  peticionAPI(`/api/mantenimientos/${id}`, "DELETE");
+
+// ---------------- REGISTRO CONSUMO ----------------
+
+export const obtenerRegistrosConsumo = () => peticionAPI("/api/registro-consumo");
+
+export const agregarRegistroConsumo = (registro) =>
+  peticionAPI("/api/registro-consumo", "POST", registro);
+
+export const modificarRegistroConsumo = (id, nuevosDatos) =>
+  peticionAPI(`/api/registro-consumo/${id}`, "PUT", nuevosDatos);
+
+export const eliminarRegistroConsumo = (id) =>
+  peticionAPI(`/api/registro-consumo/${id}`, "DELETE");
+
+// ---------------- MÁQUINAS ----------------
+
+export const obtenerMaquinas = () => peticionAPI("/api/maquinas");
+
+export const agregarMaquina = (maquina) =>
+  peticionAPI("/api/maquinas", "POST", maquina);
+
+export const modificarMaquina = (id, nuevosDatos) =>
+  peticionAPI(`/api/maquinas/${id}`, "PUT", nuevosDatos);
+
+export const eliminarMaquina = (id) =>
+  peticionAPI(`/api/maquinas/${id}`, "DELETE");
+
+// ---------------- REPORTES ----------------
+
+export const obtenerReporteMantenimientosPorTecnico = () =>
+  peticionAPI("/api/reportes/mantenimientos-por-tecnico");
+
+export const obtenerReporteConsumoPorMaquina = () =>
+  peticionAPI("/api/reportes/consumo-por-maquina");

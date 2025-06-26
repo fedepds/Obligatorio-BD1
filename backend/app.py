@@ -509,10 +509,10 @@ def reporte_mantenimientos_por_tecnico():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
-            SELECT t.nombre, t.contacto, COUNT(m.id) as total_mantenimientos
+            SELECT nombre, contacto, COUNT(id) as total_mantenimientos
             FROM tecnicos t
-            LEFT JOIN mantenimientos m ON t.id = m.tecnico_id
-            GROUP BY t.id, t.nombre, t.contacto
+            LEFT JOIN mantenimientos ON id = tecnico_id
+            GROUP BY id, nombre, contacto
         """
         cursor.execute(query)
         reportes = cursor.fetchall()
@@ -528,10 +528,10 @@ def reporte_consumo_por_maquina():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
-            SELECT m.nombre as maquina, SUM(rc.cantidad_usada) as total_consumo
-            FROM maquinas m
-            LEFT JOIN registro_consumo rc ON m.id = rc.id_maquina
-            GROUP BY m.id, m.nombre
+            SELECT nombre as maquina, SUM(rc.cantidad_usada) as total_consumo
+            FROM maquinas 
+            LEFT JOIN registro_consumo  ON id = id_maquina
+            GROUP BY id, nombre
         """
         cursor.execute(query)
         reportes = cursor.fetchall()

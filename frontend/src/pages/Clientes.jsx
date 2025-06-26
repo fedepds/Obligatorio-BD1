@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { agregarCliente, obtenerClientes } from "../api";
+import { agregarCliente, obtenerClientes, modificarCliente, eliminarCliente } from "../api";
 import {
   Button,
   Container,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -16,46 +13,91 @@ import {
   Paper,
   Box,
   Grid,
-  IconButton,
-  Divider,
   Card,
   CardContent,
+  Snackbar,
+  Alert,
+  Menu,
+  MenuItem,
+  IconButton,
 } from "@mui/material";
-import { Add, Edit, PersonAdd } from "@mui/icons-material";
+import { Add, Edit, PersonAdd, Delete, MoreVert } from "@mui/icons-material";
 
 const Clientes = () => {
   const [clientes, setClientes] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState("agregar"); // "agregar" o "modificar"
+  const [modalMode, setModalMode] = useState("agregar");
   const [clienteActual, setClienteActual] = useState({
     ci: "",
     nombre: "",
-    email: "",
+    apellido: "",
+    direccion: "",
+    fecha_nacimiento: "",
+    telefono: "",
+    correo_electronico: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedCliente, setSelectedCliente] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchClientes = async () => {
-      const data = await obtenerClientes();
-      setClientes(data);
-    };
     fetchClientes();
   }, []);
+
+  const fetchClientes = async () => {
+    try {
+      setLoading(true);
+      const data = await obtenerClientes();
+      setClientes(data);
+    } catch (error) {
+      mostrarSnackbar("Error al cargar clientes: " + error.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const mostrarSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
+
+  const cerrarSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   const abrirModalAgregar = () => {
     setClienteActual({
       ci: "",
       nombre: "",
-      email: "",
+      apellido: "",
+      direccion: "",
+      fecha_nacimiento: "",
+      telefono: "",
+      correo_electronico: "",
     });
     setModalMode("agregar");
     setShowModal(true);
   };
 
   const abrirModalModificar = (cliente) => {
-    setClienteActual(cliente);
+    setClienteActual({
+      ...cliente,
+      fecha_nacimiento: cliente.fecha_nacimiento
+        ? new Date(cliente.fecha_nacimiento).toISOString().split('T')[0]
+        : "",
+    });
     setModalMode("modificar");
     setShowModal(true);
+    handleCloseMenu();
   };
 
   const cerrarModal = () => {
@@ -69,14 +111,56 @@ const Clientes = () => {
     });
   };
 
-  const handleAgregar = async (nuevoCliente) => {
-    await agregarCliente(nuevoCliente);
-    const data = await obtenerClientes();
-    setClientes(data);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (modalMode === "agregar") {
+        await agregarCliente(clienteActual);
+        mostrarSnackbar("Cliente agregado exitosamente");
+      } else {
+        await modificarCliente(clienteActual.ci, clienteActual);
+        mostrarSnackbar("Cliente modificado exitosamente");
+      }
+
+      setShowModal(false);
+      await fetchClientes();
+    } catch (error) {
+      mostrarSnackbar(
+        `Error al ${modalMode === "agregar" ? "agregar" : "modificar"} cliente: ${error.message}`,
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Si tienes una función handleModificar, agrégala aquí
-  // const handleModificar = async (ci, clienteModificado) => { ... }
+  const handleEliminar = async (ci) => {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este cliente?")) {
+      try {
+        setLoading(true);
+        await eliminarCliente(ci);
+        mostrarSnackbar("Cliente eliminado exitosamente");
+        await fetchClientes();
+      } catch (error) {
+        mostrarSnackbar("Error al eliminar cliente: " + error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+    handleCloseMenu();
+  };
+
+  const handleMenuClick = (event, cliente) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedCliente(cliente);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+    setSelectedCliente(null);
+  };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -97,112 +181,197 @@ const Clientes = () => {
             color="primary"
             startIcon={<PersonAdd />}
             onClick={abrirModalAgregar}
+            disabled={loading}
           >
             Agregar Cliente
           </Button>
         </Box>
 
-        <Grid container spacing={2}>
-          {clientes.map((cliente) => (
-            <Grid item xs={12} sm={6} md={4} key={cliente.ci}>
-              <Card elevation={2} sx={{ height: "100%" }}>
-                <CardContent>
-                  <Typography variant="h6" component="div">
-                    {cliente.nombre}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    CI: {cliente.ci}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Email: {cliente.email}
-                  </Typography>
-                  <Box
-                    sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}
-                  >
-                    <Button
-                      size="small"
-                      startIcon={<Edit />}
-                      variant="outlined"
-                      onClick={() => abrirModalModificar(cliente)}
-                    >
-                      Modificar
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        {loading && clientes.length === 0 ? (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+            <Typography>Cargando clientes...</Typography>
+          </Box>
+        ) : (
+          <Grid container spacing={2}>
+            {clientes.map((cliente) => (
+              <Grid item xs={12} sm={6} md={4} key={cliente.ci}>
+                <Card elevation={2} sx={{ height: "100%" }}>
+                  <CardContent>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                      <Typography variant="h6" component="div">
+                        {cliente.nombre} {cliente.apellido}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuClick(e, cliente)}
+                      >
+                        <MoreVert />
+                      </IconButton>
+                    </Box>
+
+                    <Typography color="text.secondary" variant="body2">
+                      <strong>CI:</strong> {cliente.ci}
+                    </Typography>
+
+                    {cliente.correo_electronico && (
+                      <Typography color="text.secondary" variant="body2">
+                        <strong>Email:</strong> {cliente.correo_electronico}
+                      </Typography>
+                    )}
+
+                    {cliente.telefono && (
+                      <Typography color="text.secondary" variant="body2">
+                        <strong>Teléfono:</strong> {cliente.telefono}
+                      </Typography>
+                    )}
+
+                    {cliente.direccion && (
+                      <Typography color="text.secondary" variant="body2">
+                        <strong>Dirección:</strong> {cliente.direccion}
+                      </Typography>
+                    )}
+
+                    {cliente.fecha_nacimiento && (
+                      <Typography color="text.secondary" variant="body2">
+                        <strong>Fecha Nac:</strong> {new Date(cliente.fecha_nacimiento).toLocaleDateString()}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+
+        {/* Menú contextual */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleCloseMenu}
+        >
+          <MenuItem onClick={() => abrirModalModificar(selectedCliente)}>
+            <Edit sx={{ mr: 1 }} fontSize="small" />
+            Modificar
+          </MenuItem>
+          <MenuItem
+            onClick={() => handleEliminar(selectedCliente?.ci)}
+            sx={{ color: 'error.main' }}
+          >
+            <Delete sx={{ mr: 1 }} fontSize="small" />
+            Eliminar
+          </MenuItem>
+        </Menu>
 
         {/* Dialog para agregar/modificar cliente */}
-        <Dialog open={showModal} onClose={cerrarModal} fullWidth maxWidth="sm">
+        <Dialog open={showModal} onClose={cerrarModal} fullWidth maxWidth="md">
           <DialogTitle>
             {modalMode === "agregar" ? "Agregar Cliente" : "Modificar Cliente"}
           </DialogTitle>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (modalMode === "agregar") {
-                await handleAgregar(clienteActual);
-              } else {
-                // await handleModificar(clienteActual.ci, clienteActual);
-              }
-              setShowModal(false);
-              const data = await obtenerClientes();
-              setClientes(data);
-            }}
-          >
+          <form onSubmit={handleSubmit}>
             <DialogContent>
-              <Box
-                sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
-              >
-                <TextField
-                  label="CI"
-                  name="ci"
-                  value={clienteActual.ci}
-                  onChange={handleChange}
-                  disabled={modalMode === "modificar"}
-                  required
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                />
-                <TextField
-                  label="Nombre"
-                  name="nombre"
-                  value={clienteActual.nombre}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                />
-                <TextField
-                  label="Email"
-                  name="email"
-                  value={clienteActual.email}
-                  onChange={handleChange}
-                  required
-                  type="email"
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                />
-              </Box>
+              <Grid container spacing={2} sx={{ pt: 1 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="CI"
+                    name="ci"
+                    value={clienteActual.ci}
+                    onChange={handleChange}
+                    disabled={modalMode === "modificar"}
+                    required
+                    fullWidth
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Nombre"
+                    name="nombre"
+                    value={clienteActual.nombre}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Apellido"
+                    name="apellido"
+                    value={clienteActual.apellido}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Teléfono"
+                    name="telefono"
+                    value={clienteActual.telefono}
+                    onChange={handleChange}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Correo Electrónico"
+                    name="correo_electronico"
+                    type="email"
+                    value={clienteActual.correo_electronico}
+                    onChange={handleChange}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Fecha de Nacimiento"
+                    name="fecha_nacimiento"
+                    type="date"
+                    value={clienteActual.fecha_nacimiento}
+                    onChange={handleChange}
+                    fullWidth
+                    variant="outlined"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Dirección"
+                    name="direccion"
+                    value={clienteActual.direccion}
+                    onChange={handleChange}
+                    fullWidth
+                    variant="outlined"
+                    multiline
+                    rows={2}
+                  />
+                </Grid>
+              </Grid>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
-              <Button onClick={cerrarModal} color="inherit">
+              <Button onClick={cerrarModal} color="inherit" disabled={loading}>
                 Cancelar
               </Button>
-              <Button type="submit" variant="contained" color="primary">
-                {modalMode === "agregar" ? "Agregar" : "Modificar"}
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+              >
+                {loading
+                  ? (modalMode === "agregar" ? "Agregando..." : "Modificando...")
+                  : (modalMode === "agregar" ? "Agregar" : "Modificar")
+                }
               </Button>
             </DialogActions>
           </form>
         </Dialog>
 
         {/* Mensaje cuando no hay clientes */}
-        {clientes.length === 0 && (
+        {!loading && clientes.length === 0 && (
           <Box
             sx={{
               display: "flex",
@@ -225,6 +394,22 @@ const Clientes = () => {
             </Button>
           </Box>
         )}
+
+        {/* Snackbar para notificaciones */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={cerrarSnackbar}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        >
+          <Alert
+            onClose={cerrarSnackbar}
+            severity={snackbar.severity}
+            sx={{ width: "100%" }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Paper>
     </Container>
   );

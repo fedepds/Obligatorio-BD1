@@ -6,6 +6,7 @@ import Clientes from "./pages/Clientes";
 import Mantenimiento from "./pages/Mantenimiento";
 import Proveedores from "./pages/Proveedores";
 import Tecnicos from "./pages/Tecnicos";
+import Maquinas from "./pages/Maquinas";
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="/mantenimiento" element={<Mantenimiento />} />
         <Route path="/proveedores" element={<Proveedores />} />
         <Route path="/tecnicos" element={<Tecnicos />} />
+        <Route path="/maquinas" element={<Maquinas/>}></Route>
 
       </Routes>
     </BrowserRouter>
