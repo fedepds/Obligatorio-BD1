@@ -1,37 +1,32 @@
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import LoginFinal from "./pages/Login"; 
-import DashboardADM from "./pages/DashboardADM";
-import DashboardUser from "./pages/DashboardUser";
+import Home from "./pages/Home";
+import Clientes from "./pages/Clientes";
+import Mantenimiento from "./pages/Mantenimiento";
+import Proveedores from "./pages/Proveedores";
+import Tecnicos from "./pages/Tecnicos";
+import Maquinas from "./pages/Maquinas";
+import Reportes from "./pages/Reportes";
+import Insumos from "./pages/Insumos";
 
-// --- 2. Crea componentes temporales
-const ClientesPage = () => <h1>Página de Gestión de Clientes</h1>;
-const InsumosPage = () => <h1>Página de Gestión de Insumos</h1>;
-const MantenimientoPage = () => <h1>Página de Gestión de Mantenimiento</h1>;
-const ProveedoresPage = () => <h1>Página de Gestión de Proveedores</h1>;
-const TecnicosPage = () => <h1>Página de Gestión de Técnicos</h1>;
-const MaquinasPage = () => <h1>Página de Gestión de Máquinas</h1>;
-const NotFoundPage = () => <h1>404: Página no encontrada</h1>;
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route path="/" element={<LoginFinal />} />
-        <Route path="/dashboard-admin" element={<DashboardADM />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/clientes" element={<Clientes />} />
+        <Route path="/mantenimiento" element={<Mantenimiento />} />
+        <Route path="/proveedores" element={<Proveedores />} />
+        <Route path="/tecnicos" element={<Tecnicos />} />
+        <Route path="/maquinas" element={<Maquinas/>}></Route>
+        <Route path={"/reportes"} element={<Reportes/>}/>
+        <Route path={"/insumos"} element={<Insumos/>}/>
+        <Route path="*" element={<LoginFinal />} />
 
 
-        <Route path="/dashboard-user" element={<DashboardUser />} />
-
-        <Route path="/clientes" element={<ClientesPage />} />
-        <Route path="/insumos" element={<InsumosPage />} />
-        <Route path="/mantenimiento" element={<MantenimientoPage />} />
-        <Route path="/proveedores" element={<ProveedoresPage />} />
-        <Route path="/tecnicos" element={<TecnicosPage />} />
-        <Route path="/maquinas" element={<MaquinasPage />} />
-
-        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

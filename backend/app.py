@@ -18,7 +18,7 @@ def get_db_connection():
         host=os.getenv('DB_HOST'),
         port=os.getenv('DB_PORT'),
         user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD'),
+        password=os.getenv('DB_PASS'),
         database=os.getenv('DB_NAME')
     )
     return conn
@@ -28,13 +28,13 @@ def get_db_connection():
 def registrar_usuario_route():
     data = request.get_json()
     correo = data.get('correo')
-    contraseña = data.get('contraseña')
+    password = data.get('password')  # usamos "password" en lugar de "contraseña"
     es_administrador = data.get('es_administrador', False)
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "INSERT INTO login (correo, contraseña, es_administrador) VALUES (%s, %s, %s)"
-        cursor.execute(query, (correo, contraseña, es_administrador))
+        query = "INSERT INTO login (correo, password, es_administrador) VALUES (%s, %s, %s)"
+        cursor.execute(query, (correo, password, es_administrador))
         conn.commit()
         cursor.close()
         conn.close()
@@ -83,10 +83,9 @@ def agregar_cliente_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """INSERT INTO clientes (ci, nombre, apellido, direccion, fecha_nacimiento, telefono, correo_electronico) 
-                   VALUES (%s, %s, %s, %s, %s, %s, %s)"""
-        values = (data['ci'], data['nombre'], data['apellido'], data['direccion'], 
-                 data['fecha_nacimiento'], data['telefono'], data['correo_electronico'])
+        query = """INSERT INTO clientes (nombre, direccion, telefono, correo)
+                   VALUES (%s, %s, %s, %s)"""
+        values = (data['nombre'], data['direccion'], data['telefono'], data['correo'])
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -510,10 +509,10 @@ def reporte_mantenimientos_por_tecnico():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
-            SELECT t.nombre, t.contacto, COUNT(m.id) as total_mantenimientos
+            SELECT nombre, contacto, COUNT(id) as total_mantenimientos
             FROM tecnicos t
-            LEFT JOIN mantenimientos m ON t.id = m.tecnico_id
-            GROUP BY t.id, t.nombre, t.contacto
+            LEFT JOIN mantenimientos ON id = tecnico_id
+            GROUP BY id, nombre, contacto
         """
         cursor.execute(query)
         reportes = cursor.fetchall()
@@ -529,10 +528,10 @@ def reporte_consumo_por_maquina():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
-            SELECT m.nombre as maquina, SUM(rc.cantidad_usada) as total_consumo
-            FROM maquinas m
-            LEFT JOIN registro_consumo rc ON m.id = rc.id_maquina
-            GROUP BY m.id, m.nombre
+            SELECT nombre as maquina, SUM(rc.cantidad_usada) as total_consumo
+            FROM maquinas 
+            LEFT JOIN registro_consumo  ON id = id_maquina
+            GROUP BY id, nombre
         """
         cursor.execute(query)
         reportes = cursor.fetchall()
