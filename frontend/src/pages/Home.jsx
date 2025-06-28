@@ -152,16 +152,6 @@ const Home = () => {
           >
             Reportes
           </Button>
-          <Button
-          variant="contained"
-          fullWidth
-          onClick={() => navigate("/insumos")}
-          startIcon={<Inventory />}
-          size="large"
-          sx={{ py: 1.5 }}
-        >
-          Gestión de Insumos
-        </Button>
         </Stack>
       </Paper>
     </Container>
