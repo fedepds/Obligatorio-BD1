@@ -1,5 +1,6 @@
 const API_URL = "http://127.0.0.1:5000";
 
+const getToken = () => localStorage.getItem('token');
 // Función genérica peticiones API
 const peticionAPI = async (endpoint, method = "GET", body = null) => {
   try {
@@ -7,12 +8,28 @@ const peticionAPI = async (endpoint, method = "GET", body = null) => {
       method,
       headers: {},
     };
+
+    // Agregar token
+    const token = getToken();
+    if (token) {
+      options.headers["Authorization"] = `Bearer ${token}`;
+    }
+
     if (body) {
       options.headers["Content-Type"] = "application/json";
       options.body = JSON.stringify(body);
     }
 
     const response = await fetch(`${API_URL}${endpoint}`, options);
+
+    // Si hay error 401 (no autorizado) o 403 (prohibido), redirigir al login
+    if (response.status === 401 || response.status === 403) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      window.location.href = '/login';
+      throw new Error('Sesión expirada o sin permisos');
+    }
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
@@ -26,6 +43,9 @@ const peticionAPI = async (endpoint, method = "GET", body = null) => {
   }
 };
 
+
+
+
 // ---------------- USUARIOS ----------------
 
 export const registrarUsuario = (correo, password, es_administrador = false) =>
@@ -35,8 +55,18 @@ export const registrarUsuario = (correo, password, es_administrador = false) =>
     es_administrador,
   });
 
-export const loginUsuario = (correo, password) =>
-  peticionAPI("/api/usuarios/login", "POST", { correo, password });
+export const loginUsuario = async (correo, password) => {
+  const respuesta = await peticionAPI("/api/usuarios/login", "POST", { correo, password });
+  // Guardar token y datos
+  localStorage.setItem('token', respuesta.token);
+  localStorage.setItem('usuario', JSON.stringify(respuesta.usuario));
+  return respuesta;
+};
+export const cerrarSesion = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('usuario');
+  window.location.href = '/login';
+};
 
 export const obtenerUsuarios = () => peticionAPI("/api/usuarios");
 
