@@ -7,5 +7,5 @@ class Mantenimiento:
         self.observaciones = observaciones
 
     def __str__(self):
-        return f"Mantenimiento(id_maquina={self.id_maquina}, ci_tecnico={self.ci_tecnico}, tipo={self.tipo}, fecha={self.fecha}, observaciones={self.observaciones})"
+        return f"Mantenimiento(id_maquina={self.id_maquina}, id_tecnico={self.id_tecnico}, tipo={self.tipo}, fecha={self.fecha}, observaciones={self.observaciones})"
 
