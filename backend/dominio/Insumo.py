@@ -1,12 +1,13 @@
 class Insumo:
-    def __init__ (self,codigo, nombre,descripcion,cantidad,precio,proveedor_id):
-        self.codigo = codigo
+    def __init__ (self,id, nombre,descripcion,tipo,precio_unitario,rut_proveedor):
+        self.id = id
         self.nombre = nombre
         self.descripcion = descripcion
-        self.cantidad = cantidad
-        self.precio = precio
-        self.proveedor_id = proveedor_id
+        self.tipo = tipo
+        self.precio_unitario = precio_unitario
+        self.rut_proveedor = rut_proveedor
+        
     
     def __repr__(self):
-        return (f"Insumo(codigo={self.codigo}, nombre={self.nombre}, descripcion={self.descripcion}, cantidad={self.cantidad}, precio={self.precio}, proveedor_id={self.proveedor_id})")
-    
+        return (f"Insumo(id={self.id}, nombre={self.nombre}, descripcion={self.descripcion}, tipo={self.tipo}, precio_unitario={self.precio_unitario}, rut_proveedor={self.rut_proveedor})")
+
