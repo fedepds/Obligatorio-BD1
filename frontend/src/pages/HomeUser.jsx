@@ -89,7 +89,7 @@ const HomeUser = () => {
           <Button
             variant="contained"
             fullWidth
-            onClick={() => navigate("/homeUser")}
+            onClick={() => navigate("/registro-consumos")}
             startIcon={<Receipt />}
             size="large"
             sx={{ py: 1.5 }}

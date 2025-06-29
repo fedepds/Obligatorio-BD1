@@ -12,7 +12,7 @@ import Insumos from "./pages/Insumos";
 import { ProtectedRoute } from './components/ProtectedRoute';
 import AccesoDenegado from './pages/AccesoDenegado';
 import HomeUser from "./pages/HomeUser";
-
+import RegistroConsumos from "./pages/RegistroConsumos";
 function App() {
   return (
     <BrowserRouter>
@@ -64,8 +64,10 @@ function App() {
             <Insumos />
           </ProtectedRoute>
         } />
-        <Route path="*" element={<Navigate to="/Login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/registro-consumos" element={<ProtectedRoute><RegistroConsumos /></ProtectedRoute>} />
       </Routes>
+
     </BrowserRouter>
   );
 }
