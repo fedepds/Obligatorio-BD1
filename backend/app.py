@@ -1,8 +1,10 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta
 import mysql.connector
-from dotenv import load_dotenv 
+import jwt
+from dotenv import load_dotenv
+from functools import wraps
 import os
 
 # Cargar variables de entorno desde .env
@@ -22,26 +24,47 @@ def get_db_connection():
         database=os.getenv('DB_NAME')
     )
     return conn
+SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'clave-secreta-temporal')
 
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization'].split(' ')[1]
+
+        if not token:
+            return jsonify({'error': 'Token no proporcionado'}), 401
+
+        try:
+            data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            # Añadir información del usuario a la solicitud
+            request.usuario = data
+        except:
+            return jsonify({'error': 'Token inválido o expirado'}), 401
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # Primero verificamos el token
+        token_result = token_required(lambda: None)()
+        if isinstance(token_result, tuple):  # Es un error
+            return token_result
+
+        # Verificamos si es administrador
+        if not request.usuario.get('es_administrador'):
+            return jsonify({'error': 'Requiere privilegios de administrador'}), 403
+
+        return f(*args, **kwargs)
+
+    return decorated
 # ----------------------------- USUARIOS ---------------------------------
-@app.route('/api/usuarios', methods=['POST'])
-def registrar_usuario_route():
-    data = request.get_json()
-    correo = data.get('correo')
-    password = data.get('password')  # usamos "password" en lugar de "contraseña"
-    es_administrador = data.get('es_administrador', False)
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        query = "INSERT INTO login (correo, password, es_administrador) VALUES (%s, %s, %s)"
-        cursor.execute(query, (correo, password, es_administrador))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({'message': 'Usuario registrado con éxito'}), 201
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
-
 @app.route('/api/usuarios/login', methods=['POST'])
 def login_usuario():
     data = request.get_json()
@@ -49,21 +72,37 @@ def login_usuario():
     password = data.get('password')
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)  # Para obtener resultados como diccionario
         query = "SELECT * FROM login WHERE correo = %s AND password = %s"
         cursor.execute(query, (correo, password))
         result = cursor.fetchone()
         cursor.close()
         conn.close()
-        
+
         if result:
-            return jsonify({'message': 'Autenticación exitosa'}), 200
+            # Generar token JWT
+            payload = {
+                'correo': result['correo'],
+                'es_administrador': bool(result['es_administrador']),
+                'exp': datetime.utcnow() + timedelta(hours=3)
+            }
+            token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
+            return jsonify({
+                'token': token,
+                'usuario': {
+                    'correo': result['correo'],
+                    'es_administrador': bool(result['es_administrador'])
+                }
+            }), 200
         else:
             return jsonify({'error': 'Credenciales incorrectas'}), 401
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+
 @app.route('/api/usuarios', methods=['GET'])
+@admin_required
 def obtener_usuarios():
     try:
         conn = get_db_connection()
@@ -142,6 +181,7 @@ def modificar_cliente_route(ci):
 
 # ----------------------------- PROVEEDORES ---------------------------------
 @app.route('/api/proveedores', methods=['POST'])
+@admin_required
 def agregar_proveedor_route():
     data = request.get_json()
     try:
@@ -157,6 +197,7 @@ def agregar_proveedor_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/proveedores/<id>', methods=['DELETE'])
+@admin_required
 def eliminar_proveedor_route(id):
     try:
         conn = get_db_connection()
@@ -171,6 +212,7 @@ def eliminar_proveedor_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/proveedores/<id>', methods=['PUT'])
+@admin_required
 def modificar_proveedor_route(id):
     data = request.get_json()
     try:
@@ -186,6 +228,7 @@ def modificar_proveedor_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/proveedores', methods=['GET'])
+@admin_required
 def obtener_proveedores_route():
     try:
         conn = get_db_connection()
@@ -264,6 +307,7 @@ def obtener_insumos_route():
 
 # ----------------------------- TECNICOS ---------------------------------
 @app.route('/api/tecnicos', methods=['POST'])
+@admin_required
 def agregar_tecnico_route():
     data = request.get_json()
     try:
@@ -279,6 +323,7 @@ def agregar_tecnico_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos/<id>', methods=['DELETE'])
+@admin_required
 def eliminar_tecnico_route(id):
     try:
         conn = get_db_connection()
@@ -293,6 +338,7 @@ def eliminar_tecnico_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos/<id>', methods=['PUT'])
+@admin_required
 def modificar_tecnico_route(id):
     data = request.get_json()
     try:
@@ -308,6 +354,7 @@ def modificar_tecnico_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos', methods=['GET'])
+@admin_required
 def obtener_tecnicos_route():
     try:
         conn = get_db_connection()
@@ -446,6 +493,7 @@ def obtener_registro_consumo_route():
 
 # ----------------------------- MAQUINAS ---------------------------------
 @app.route('/api/maquinas', methods=['GET'])
+@admin_required
 def obtener_maquinas_route():
     try:
         conn = get_db_connection()
@@ -459,6 +507,7 @@ def obtener_maquinas_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/maquinas', methods=['POST'])
+@admin_required
 def agregar_maquina_route():
     data = request.get_json()
     try:
@@ -474,6 +523,7 @@ def agregar_maquina_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/maquinas/<int:id>', methods=['DELETE'])
+@admin_required
 def eliminar_maquina_route(id):
     try:
         conn = get_db_connection()
@@ -488,6 +538,7 @@ def eliminar_maquina_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/maquinas/<int:id>', methods=['PUT'])
+@admin_required
 def modificar_maquina_route(id):
     data = request.get_json()
     try:

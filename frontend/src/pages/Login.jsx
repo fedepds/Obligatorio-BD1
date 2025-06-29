@@ -45,7 +45,7 @@ function ModeToggle() {
   );
 }
 
-export default function LoginFinal(props) {
+export default function Login(props) {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState(null);
@@ -56,7 +56,8 @@ const handleLogin = async () => {
   setError(null);
   setLoading(true);
   try {
-    await loginUsuario(email, password);
+    const respuesta = await loginUsuario(email, password);
+    // El token ya se guarda en loginUsuario
     navigate("/home");
   } catch (err) {
     setError("Credenciales incorrectas o error de conexión.");
