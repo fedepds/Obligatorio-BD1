@@ -101,8 +101,8 @@ def login_usuario():
         return jsonify({'error': str(e)}), 400
 
 
-@app.route('/api/usuarios', methods=['GET'])
-@admin_required
+@app.route('/api/usuarios', methods=['GET']) # yo lo sacaria ya que no es necesario
+@admin_required #sacar para realizar pruebas
 def obtener_usuarios():
     try:
         conn = get_db_connection()
@@ -147,18 +147,18 @@ def eliminar_cliente_route(ci):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/clientes', methods=['GET'])
-def obtener_clientes_route():
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM clientes")
-        clientes = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(clientes), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
+###@app.route('/api/clientes', methods=['GET'])
+###def obtener_clientes_route():
+###    try:
+###       conn = get_db_connection()
+###        cursor = conn.cursor(dictionary=True)
+####     cursor.execute("SELECT * FROM clientes")
+###        clientes = cursor.fetchall()
+###        cursor.close()
+####       conn.close()
+###        return jsonify(clientes), 200
+###    except Exception as e:
+###        return jsonify({'error': str(e)}), 400
 
 @app.route('/api/clientes/<ci>', methods=['PUT'])
 def modificar_cliente_route(ci):
@@ -181,7 +181,7 @@ def modificar_cliente_route(ci):
 
 # ----------------------------- PROVEEDORES ---------------------------------
 @app.route('/api/proveedores', methods=['POST'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def agregar_proveedor_route():
     data = request.get_json()
     try:
@@ -197,7 +197,7 @@ def agregar_proveedor_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/proveedores/<id>', methods=['DELETE'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def eliminar_proveedor_route(id):
     try:
         conn = get_db_connection()
@@ -212,7 +212,7 @@ def eliminar_proveedor_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/proveedores/<id>', methods=['PUT'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def modificar_proveedor_route(id):
     data = request.get_json()
     try:
@@ -228,7 +228,7 @@ def modificar_proveedor_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/proveedores', methods=['GET'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def obtener_proveedores_route():
     try:
         conn = get_db_connection()
@@ -307,7 +307,7 @@ def obtener_insumos_route():
 
 # ----------------------------- TECNICOS ---------------------------------
 @app.route('/api/tecnicos', methods=['POST'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def agregar_tecnico_route():
     data = request.get_json()
     try:
@@ -323,7 +323,7 @@ def agregar_tecnico_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos/<id>', methods=['DELETE'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def eliminar_tecnico_route(id):
     try:
         conn = get_db_connection()
@@ -338,7 +338,7 @@ def eliminar_tecnico_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos/<id>', methods=['PUT'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def modificar_tecnico_route(id):
     data = request.get_json()
     try:
@@ -354,7 +354,7 @@ def modificar_tecnico_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos', methods=['GET'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def obtener_tecnicos_route():
     try:
         conn = get_db_connection()
@@ -493,7 +493,7 @@ def obtener_registro_consumo_route():
 
 # ----------------------------- MAQUINAS ---------------------------------
 @app.route('/api/maquinas', methods=['GET'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def obtener_maquinas_route():
     try:
         conn = get_db_connection()
@@ -507,7 +507,7 @@ def obtener_maquinas_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/maquinas', methods=['POST'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def agregar_maquina_route():
     data = request.get_json()
     try:
@@ -523,7 +523,7 @@ def agregar_maquina_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/maquinas/<int:id>', methods=['DELETE'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def eliminar_maquina_route(id):
     try:
         conn = get_db_connection()
@@ -538,7 +538,7 @@ def eliminar_maquina_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/maquinas/<int:id>', methods=['PUT'])
-@admin_required
+@admin_required #sacar para realizar pruebas
 def modificar_maquina_route(id):
     data = request.get_json()
     try:
