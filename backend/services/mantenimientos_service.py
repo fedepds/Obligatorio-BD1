@@ -31,3 +31,12 @@ def modificar_mantenimiento(mantenimiento):
         cursor = connection.cursor()
         cursor.execute(query, values)
         connection.commit()
+
+def obtener_mantenimientos():
+    query = """SELECT * FROM mantenimientos"""
+    
+    with DatabaseConnection() as connection:
+        cursor = connection.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        return rows
