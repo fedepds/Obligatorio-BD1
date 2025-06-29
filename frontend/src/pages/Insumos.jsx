@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   obtenerInsumos,
   agregarInsumo,
@@ -19,8 +20,13 @@ import {
   Grid,
   Card,
   CardContent,
+  Snackbar,
+  Alert,
+  Menu,
+  MenuItem,
+  IconButton,
 } from "@mui/material";
-import { Add, Edit, Delete, Inventory } from "@mui/icons-material";
+import { Add, Edit, Delete, MoreVert, Inventory } from "@mui/icons-material";
 
 const Insumos = () => {
   const [insumos, setInsumos] = useState([]);
@@ -33,14 +39,43 @@ const Insumos = () => {
     id_proveedor: "",
     id: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedInsumo, setSelectedInsumo] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchInsumos = async () => {
-      const data = await obtenerInsumos();
-      setInsumos(data);
-    };
     fetchInsumos();
   }, []);
+
+  const fetchInsumos = async () => {
+    try {
+      setLoading(true);
+      const data = await obtenerInsumos();
+      setInsumos(data);
+    } catch (error) {
+      mostrarSnackbar("Error al cargar insumos: " + error.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const mostrarSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
+
+  const cerrarSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   const abrirModalAgregar = () => {
     setInsumoActual({
@@ -58,6 +93,7 @@ const Insumos = () => {
     setInsumoActual(insumo);
     setModalMode("modificar");
     setShowModal(true);
+    handleCloseMenu();
   };
 
   const cerrarModal = () => setShowModal(false);
@@ -69,34 +105,58 @@ const Insumos = () => {
     });
   };
 
-  const handleAgregar = async (nuevoInsumo) => {
-    await agregarInsumo(nuevoInsumo);
-    setInsumos(await obtenerInsumos());
-  };
-
-  const handleModificar = async (id, nuevosDatos) => {
-    await modificarInsumo(id, nuevosDatos);
-    setInsumos(await obtenerInsumos());
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (modalMode === "agregar") {
+        await agregarInsumo(insumoActual);
+        mostrarSnackbar("Insumo agregado exitosamente");
+      } else {
+        await modificarInsumo(insumoActual.id, {
+          descripcion: insumoActual.descripcion,
+          tipo: insumoActual.tipo,
+          precio_unitario: insumoActual.precio_unitario,
+          id_proveedor: insumoActual.id_proveedor,
+        });
+        mostrarSnackbar("Insumo modificado exitosamente");
+      }
+      setShowModal(false);
+      await fetchInsumos();
+    } catch (error) {
+      mostrarSnackbar(
+        `Error al ${modalMode === "agregar" ? "agregar" : "modificar"} insumo: ${error.message}`,
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEliminar = async (id) => {
-    await eliminarInsumo(id);
-    setInsumos(await obtenerInsumos());
+    if (window.confirm("¿Estás seguro de que deseas eliminar este insumo?")) {
+      try {
+        setLoading(true);
+        await eliminarInsumo(id);
+        mostrarSnackbar("Insumo eliminado exitosamente");
+        await fetchInsumos();
+      } catch (error) {
+        mostrarSnackbar("Error al eliminar insumo: " + error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+    handleCloseMenu();
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (modalMode === "agregar") {
-      await handleAgregar(insumoActual);
-    } else {
-      await handleModificar(insumoActual.id, {
-        descripcion: insumoActual.descripcion,
-        tipo: insumoActual.tipo,
-        precio_unitario: insumoActual.precio_unitario,
-        id_proveedor: insumoActual.id_proveedor,
-      });
-    }
-    setShowModal(false);
+  const handleMenuClick = (event, insumo) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedInsumo(insumo);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+    setSelectedInsumo(null);
   };
 
   return (
@@ -113,134 +173,177 @@ const Insumos = () => {
           <Typography variant="h4" component="h1" gutterBottom>
             Gestión de Insumos
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Inventory />}
-            onClick={abrirModalAgregar}
-          >
-            Agregar Insumo
-          </Button>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Add />}
+              onClick={abrirModalAgregar}
+              disabled={loading}
+            >
+              Agregar Insumo
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate("/home")}
+              disabled={loading}
+            >
+              Volver
+            </Button>
+          </Box>
         </Box>
 
-        <Grid container spacing={2}>
-          {insumos.map((insumo) => (
-            <Grid item key={insumo.id} xs={12} sm={6} md={4}>
-              <Card elevation={2}>
-                <CardContent>
-                  <Typography variant="h6">{insumo.descripcion}</Typography>
-                  <Typography color="text.secondary">
-                    Tipo: {insumo.tipo}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Precio: {insumo.precio_unitario}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Proveedor: {insumo.id_proveedor}
-                  </Typography>
-                  <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 1 }}>
-                    <Button
-                      size="small"
-                      startIcon={<Edit />}
-                      variant="outlined"
-                      onClick={() => abrirModalModificar(insumo)}
-                    >
-                      Modificar
-                    </Button>
-                    <Button
-                      size="small"
-                      startIcon={<Delete />}
-                      variant="outlined"
-                      color="error"
-                      onClick={() => handleEliminar(insumo.id)}
-                    >
-                      Eliminar
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        {loading && insumos.length === 0 ? (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+            <Typography>Cargando insumos...</Typography>
+          </Box>
+        ) : (
+          <Grid container spacing={2}>
+            {insumos.map((insumo) => (
+              <Grid item xs={12} sm={6} md={4} key={insumo.id}>
+                <Card elevation={2} sx={{ height: "100%" }}>
+                  <CardContent>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                      <Typography variant="h6" component="div">
+                        {insumo.descripcion || "Sin descripción"}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuClick(e, insumo)}
+                      >
+                        <MoreVert />
+                      </IconButton>
+                    </Box>
+                    <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
+                      <strong>ID:</strong> {insumo.id}
+                    </Typography>
+                    <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
+                      <strong>Tipo:</strong> {insumo.tipo}
+                    </Typography>
+                    <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
+                      <strong>Precio Unitario:</strong> {insumo.precio_unitario}
+                    </Typography>
+                    <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
+                      <strong>ID Proveedor:</strong> {insumo.id_proveedor}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
 
-        {/* Modal para agregar/modificar insumo */}
+        {/* Menú contextual */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleCloseMenu}
+        >
+          <MenuItem onClick={() => abrirModalModificar(selectedInsumo)}>
+            <Edit sx={{ mr: 1 }} fontSize="small" />
+            Modificar
+          </MenuItem>
+          <MenuItem
+            onClick={() => handleEliminar(selectedInsumo?.id)}
+            sx={{ color: 'error.main' }}
+          >
+            <Delete sx={{ mr: 1 }} fontSize="small" />
+            Eliminar
+          </MenuItem>
+        </Menu>
+
+        {/* Dialog para agregar/modificar insumo */}
         <Dialog open={showModal} onClose={cerrarModal} fullWidth maxWidth="sm">
           <DialogTitle>
             {modalMode === "agregar" ? "Agregar Insumo" : "Modificar Insumo"}
           </DialogTitle>
           <form onSubmit={handleSubmit}>
             <DialogContent>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+              <Grid container spacing={2} sx={{ pt: 1 }}>
                 {modalMode === "modificar" && (
+                  <Grid item xs={12}>
+                    <TextField
+                      label="ID"
+                      name="id"
+                      value={insumoActual.id}
+                      InputProps={{ readOnly: true }}
+                      fullWidth
+                      variant="outlined"
+                      margin="dense"
+                    />
+                  </Grid>
+                )}
+                <Grid item xs={12}>
                   <TextField
-                    label="ID"
-                    name="id"
-                    value={insumoActual.id}
-                    InputProps={{ readOnly: true }}
+                    label="Descripción"
+                    name="descripcion"
+                    value={insumoActual.descripcion}
+                    onChange={handleChange}
+                    required
                     fullWidth
                     variant="outlined"
                     margin="dense"
                   />
-                )}
-                <TextField
-                  label="Descripción"
-                  name="descripcion"
-                  value={insumoActual.descripcion}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                />
-                <TextField
-                  label="Tipo"
-                  name="tipo"
-                  value={insumoActual.tipo}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                />
-                <TextField
-                  label="Precio Unitario"
-                  name="precio_unitario"
-                  type="number"
-                  value={insumoActual.precio_unitario}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                  inputProps={{ min: 0, step: "0.01" }}
-                />
-                <TextField
-                  label="ID Proveedor"
-                  name="id_proveedor"
-                  type="number"
-                  value={insumoActual.id_proveedor}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                  inputProps={{ min: 0 }}
-                />
-              </Box>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Tipo"
+                    name="tipo"
+                    value={insumoActual.tipo}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    variant="outlined"
+                    margin="dense"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Precio Unitario"
+                    name="precio_unitario"
+                    type="number"
+                    value={insumoActual.precio_unitario}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    variant="outlined"
+                    margin="dense"
+                    inputProps={{ min: 0, step: "0.01" }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="ID Proveedor"
+                    name="id_proveedor"
+                    type="number"
+                    value={insumoActual.id_proveedor}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    variant="outlined"
+                    margin="dense"
+                    inputProps={{ min: 0 }}
+                  />
+                </Grid>
+              </Grid>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
-              <Button onClick={cerrarModal} color="inherit">
+              <Button onClick={cerrarModal} color="inherit" disabled={loading}>
                 Cancelar
               </Button>
-              <Button type="submit" variant="contained" color="primary">
-                {modalMode === "agregar" ? "Agregar" : "Modificar"}
+              <Button type="submit" variant="contained" color="primary" disabled={loading}>
+                {loading
+                  ? (modalMode === "agregar" ? "Agregando..." : "Modificando...")
+                  : (modalMode === "agregar" ? "Agregar" : "Modificar")
+                }
               </Button>
             </DialogActions>
           </form>
         </Dialog>
 
         {/* Mensaje cuando no hay insumos */}
-        {insumos.length === 0 && (
+        {!loading && insumos.length === 0 && (
           <Box
             sx={{
               display: "flex",
@@ -263,6 +366,22 @@ const Insumos = () => {
             </Button>
           </Box>
         )}
+
+        {/* Snackbar para notificaciones */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={cerrarSnackbar}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        >
+          <Alert
+            onClose={cerrarSnackbar}
+            severity={snackbar.severity}
+            sx={{ width: "100%" }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Paper>
     </Container>
   );

@@ -193,6 +193,7 @@ const Maquinas = () => {
           <Typography variant="h4" component="h1" gutterBottom>
             Gestión de Máquinas
           </Typography>
+          <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             variant="contained"
             color="primary"
@@ -202,6 +203,15 @@ const Maquinas = () => {
           >
             Agregar Máquina
           </Button>
+          <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate("/home")}
+              disabled={loading}
+            >
+              Volver
+            </Button>
+          </Box>
         </Box>
 
         {loading && maquinas.length === 0 ? (
