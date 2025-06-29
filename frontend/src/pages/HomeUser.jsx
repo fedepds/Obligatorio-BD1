@@ -9,16 +9,14 @@ import {
   Divider,
 } from "@mui/material";
 import {
-  Engineering,
-  Business,
   Handyman,
   Person,
   Inventory,
   Receipt,
-  BarChart, // Importa un ícono para reportes
+  BarChart,
 } from "@mui/icons-material";
 
-const Home = () => {
+const HomeUser = () => {
   const navigate = useNavigate();
 
   return (
@@ -65,38 +63,6 @@ const Home = () => {
         </Typography>
 
         <Stack spacing={2} mt={4}>
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={() => navigate("/tecnicos")}
-            startIcon={<Engineering />}
-            size="large"
-            sx={{ py: 1.5 }}
-          >
-            Gestión de Técnicos
-          </Button>
-
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={() => navigate("/proveedores")}
-            startIcon={<Business />}
-            size="large"
-            sx={{ py: 1.5 }}
-          >
-            Gestión de Proveedores
-          </Button>
-
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={() => navigate("/maquinas")}
-            startIcon={<Handyman />}
-            size="large"
-            sx={{ py: 1.5 }}
-          >
-            Gestión de Máquinas
-          </Button>
 
           <Button
             variant="contained"
@@ -123,7 +89,7 @@ const Home = () => {
           <Button
             variant="contained"
             fullWidth
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/homeUser")}
             startIcon={<Receipt />}
             size="large"
             sx={{ py: 1.5 }}
@@ -157,5 +123,4 @@ const Home = () => {
     </Container>
   );
 };
-
-export default Home;
+export default HomeUser;
