@@ -1,5 +1,5 @@
 class Mantenimiento:
-    def __init__(self, id_maquina, ci_tecnico, tipo, fecha, observaciones):
+    def __init__(self, id_maquina, id_tecnico, tipo, fecha, observaciones):
         self.id_maquina = id_maquina
         self.id_tecnico = id_tecnico
         self.tipo = tipo
