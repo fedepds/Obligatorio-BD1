@@ -123,7 +123,7 @@ const Home = () => {
           <Button
             variant="contained"
             fullWidth
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/registro-consumos")}
             startIcon={<Receipt />}
             size="large"
             sx={{ py: 1.5 }}
