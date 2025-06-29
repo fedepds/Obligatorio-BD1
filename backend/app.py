@@ -46,12 +46,12 @@ def registrar_usuario_route():
 def login_usuario():
     data = request.get_json()
     correo = data.get('correo')
-    contraseña = data.get('contraseña')
+    password = data.get('password')
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "SELECT * FROM login WHERE correo = %s AND contraseña = %s"
-        cursor.execute(query, (correo, contraseña))
+        query = "SELECT * FROM login WHERE correo = %s AND password = %s"
+        cursor.execute(query, (correo, password))
         result = cursor.fetchone()
         cursor.close()
         conn.close()

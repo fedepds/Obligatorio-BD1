@@ -35,8 +35,8 @@ export const registrarUsuario = (correo, password, es_administrador = false) =>
     es_administrador,
   });
 
-export const loginUsuario = (correo, contraseña) =>
-  peticionAPI("/api/usuarios/login", "POST", { correo, contraseña });
+export const loginUsuario = (correo, password) =>
+  peticionAPI("/api/usuarios/login", "POST", { correo, password });
 
 export const obtenerUsuarios = () => peticionAPI("/api/usuarios");
 

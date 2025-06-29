@@ -9,12 +9,17 @@ import Input from "@mui/joy/Input";
 import Button from "@mui/joy/Button";
 import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
+import Alert from "@mui/joy/Alert";
+import { useNavigate } from "react-router-dom";
+
 
 import "../styles/Login.css";
+import { loginUsuario } from "../api";
 
 function ModeToggle() {
   const { mode, setMode } = useColorScheme();
   const [mounted, setMounted] = React.useState(false);
+
 
   React.useEffect(() => {
     setMounted(true);
@@ -41,6 +46,25 @@ function ModeToggle() {
 }
 
 export default function LoginFinal(props) {
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [error, setError] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+const navigate = useNavigate();
+
+const handleLogin = async () => {
+  setError(null);
+  setLoading(true);
+  try {
+    await loginUsuario(email, password);
+    navigate("/home");
+  } catch (err) {
+    setError("Credenciales incorrectas o error de conexión.");
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
     <main>
       <CssVarsProvider {...props}>
@@ -55,16 +79,41 @@ export default function LoginFinal(props) {
           </div>
           <FormControl>
             <FormLabel>Email</FormLabel>
-            <Input name="email" type="email" placeholder="johndoe@email.com" />
+            <Input
+              name="email"
+              type="email"
+              placeholder="johndoe@email.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
           </FormControl>
           <FormControl>
             <FormLabel>Password</FormLabel>
-            <Input name="password" type="password" placeholder="password" />
+            <Input
+              name="password"
+              type="password"
+              placeholder="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
           </FormControl>
-          <Button className="login-button">Log in</Button>
+          {error && (
+            <Alert color="danger" variant="soft" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+          <Button
+            className="login-button"
+            loading={loading}
+            onClick={handleLogin}
+            disabled={loading}
+          >
+            Log in
+          </Button>
         </Sheet>
       </CssVarsProvider>
-        
     </main>
   );
 }
