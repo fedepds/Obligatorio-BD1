@@ -11,6 +11,7 @@ import Reportes from "./pages/Reportes";
 import Insumos from "./pages/Insumos";
 import { ProtectedRoute } from './components/ProtectedRoute';
 import AccesoDenegado from './pages/AccesoDenegado';
+import HomeUser from "./pages/HomeUser";
 
 function App() {
   return (
@@ -21,6 +22,11 @@ function App() {
         <Route path="/home" element={
           <ProtectedRoute requiereAdmin={true}>
             <Home />
+          </ProtectedRoute>
+        } />
+          <Route path="/homeUser" element={
+          <ProtectedRoute>
+            <HomeUser />
           </ProtectedRoute>
         } />
         <Route path="/clientes" element={
@@ -58,7 +64,7 @@ function App() {
             <Insumos />
           </ProtectedRoute>
         } />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/Login" replace />} />
       </Routes>
     </BrowserRouter>
   );

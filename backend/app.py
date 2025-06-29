@@ -101,19 +101,7 @@ def login_usuario():
         return jsonify({'error': str(e)}), 400
 
 
-@app.route('/api/usuarios', methods=['GET']) # yo lo sacaria ya que no es necesario
-@admin_required #sacar para realizar pruebas
-def obtener_usuarios():
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM login")
-        usuarios = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(usuarios), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
+
 
 # ----------------------------- CLIENTES ---------------------------------
 @app.route('/api/clientes', methods=['POST'])
@@ -147,18 +135,18 @@ def eliminar_cliente_route(ci):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-###@app.route('/api/clientes', methods=['GET'])
-###def obtener_clientes_route():
-###    try:
-###       conn = get_db_connection()
-###        cursor = conn.cursor(dictionary=True)
-####     cursor.execute("SELECT * FROM clientes")
-###        clientes = cursor.fetchall()
-###        cursor.close()
-####       conn.close()
-###        return jsonify(clientes), 200
-###    except Exception as e:
-###        return jsonify({'error': str(e)}), 400
+@app.route('/api/clientes', methods=['GET'])
+def obtener_clientes_route():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM clientes")
+        clientes = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(clientes), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/api/clientes/<ci>', methods=['PUT'])
 def modificar_cliente_route(ci):

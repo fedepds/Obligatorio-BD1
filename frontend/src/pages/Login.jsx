@@ -57,8 +57,12 @@ const handleLogin = async () => {
   setLoading(true);
   try {
     const respuesta = await loginUsuario(email, password);
-    // El token ya se guarda en loginUsuario
-    navigate("/home");
+    const usuario = respuesta.usuario;
+    if (usuario.es_administrador) {
+      navigate("/home");
+    } else {
+      navigate("/homeUser");
+    }
   } catch (err) {
     setError("Credenciales incorrectas o error de conexión.");
   } finally {
