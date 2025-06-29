@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { agregarMaquina, obtenerMaquinas, modificarMaquina, eliminarMaquina } from "../api";
+import { agregarTecnico, obtenerTecnicos, modificarTecnico, eliminarTecnico } from "../api";
 import {
   Button,
   Container,
@@ -20,35 +20,25 @@ import {
   Menu,
   MenuItem,
   IconButton,
-  Select,
-  FormControl,
-  InputLabel,
-  Chip,
 } from "@mui/material";
 import {
   Add,
   Edit,
   Delete,
   MoreVert,
-  CheckCircle,
-  Error,
+  Person,
   Build,
-  Stop,
-  LocationOn,
-  AttachMoney,
-  Person
 } from "@mui/icons-material";
 
-const Maquinas = () => {
-  const [maquinas, setMaquinas] = useState([]);
+const Tecnicos = () => {
+  const [tecnicos, setTecnicos] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState("agregar");
-  const [maquinaActual, setMaquinaActual] = useState({
+  const [tecnicoActual, setTecnicoActual] = useState({
     id: "",
-    modelo: "",
-    costo_alquiler_mensual: "",
-    id_cliente: "",
-    ubicacion_cliente: "",
+    nombre: "",
+    especialidad: "",
+    telefono: "",
   });
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -57,20 +47,20 @@ const Maquinas = () => {
     severity: "success",
   });
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedMaquina, setSelectedMaquina] = useState(null);
+  const [selectedTecnico, setSelectedTecnico] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchMaquinas();
+    fetchTecnicos();
   }, []);
 
-  const fetchMaquinas = async () => {
+  const fetchTecnicos = async () => {
     try {
       setLoading(true);
-      const data = await obtenerMaquinas();
-      setMaquinas(data);
+      const data = await obtenerTecnicos();
+      setTecnicos(data);
     } catch (error) {
-      mostrarSnackbar("Error al cargar máquinas: " + error.message, "error");
+      mostrarSnackbar("Error al cargar técnicos: " + error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -89,20 +79,19 @@ const Maquinas = () => {
   };
 
   const abrirModalAgregar = () => {
-    setMaquinaActual({
+    setTecnicoActual({
       id: "",
-      modelo: "",
-      costo_alquiler_mensual: "",
-      id_cliente: "",
-      ubicacion_cliente: "",
+      nombre: "",
+      especialidad: "",
+      telefono: "",
     });
     setModalMode("agregar");
     setShowModal(true);
   };
 
-  const abrirModalModificar = (maquina) => {
-    setMaquinaActual({
-      ...maquina,
+  const abrirModalModificar = (tecnico) => {
+    setTecnicoActual({
+      ...tecnico,
     });
     setModalMode("modificar");
     setShowModal(true);
@@ -113,13 +102,12 @@ const Maquinas = () => {
     setShowModal(false);
   };
 
-  // CORREGIDO: Usar e.target.name
-const handleChange = (e) => {
-  setMaquinaActual({
-    ...maquinaActual,
-    [e.target.name]: e.target.value,
-  });
-};
+  const handleChange = (e) => {
+    setTecnicoActual({
+      ...tecnicoActual,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -127,18 +115,18 @@ const handleChange = (e) => {
 
     try {
       if (modalMode === "agregar") {
-        await agregarMaquina(maquinaActual);
-        mostrarSnackbar("Máquina agregada exitosamente");
+        await agregarTecnico(tecnicoActual);
+        mostrarSnackbar("Técnico agregado exitosamente");
       } else {
-        await modificarMaquina(maquinaActual.id, maquinaActual);
-        mostrarSnackbar("Máquina modificada exitosamente");
+        await modificarTecnico(tecnicoActual.id, tecnicoActual);
+        mostrarSnackbar("Técnico modificado exitosamente");
       }
 
       setShowModal(false);
-      await fetchMaquinas();
+      await fetchTecnicos();
     } catch (error) {
       mostrarSnackbar(
-        `Error al ${modalMode === "agregar" ? "agregar" : "modificar"} máquina: ${error.message}`,
+        `Error al ${modalMode === "agregar" ? "agregar" : "modificar"} técnico: ${error.message}`,
         "error"
       );
     } finally {
@@ -147,14 +135,14 @@ const handleChange = (e) => {
   };
 
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar esta máquina?")) {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este técnico?")) {
       try {
         setLoading(true);
-        await eliminarMaquina(id);
-        mostrarSnackbar("Máquina eliminada exitosamente");
-        await fetchMaquinas();
+        await eliminarTecnico(id);
+        mostrarSnackbar("Técnico eliminado exitosamente");
+        await fetchTecnicos();
       } catch (error) {
-        mostrarSnackbar("Error al eliminar máquina: " + error.message, "error");
+        mostrarSnackbar("Error al eliminar técnico: " + error.message, "error");
       } finally {
         setLoading(false);
       }
@@ -162,22 +150,14 @@ const handleChange = (e) => {
     handleCloseMenu();
   };
 
-  const handleMenuClick = (event, maquina) => {
+  const handleMenuClick = (event, tecnico) => {
     setAnchorEl(event.currentTarget);
-    setSelectedMaquina(maquina);
+    setSelectedTecnico(tecnico);
   };
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
-    setSelectedMaquina(null);
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-UY', {
-      style: 'currency',
-      currency: 'UYU',
-      minimumFractionDigits: 0,
-    }).format(amount);
+    setSelectedTecnico(null);
   };
 
   return (
@@ -192,62 +172,65 @@ const handleChange = (e) => {
           }}
         >
           <Typography variant="h4" component="h1" gutterBottom>
-            Gestión de Máquinas
+            Gestión de Técnicos
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Add />}
-            onClick={abrirModalAgregar}
-            disabled={loading}
-          >
-            Agregar Máquina
-          </Button>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Add />}
+              onClick={abrirModalAgregar}
+              disabled={loading}
+            >
+              Agregar Técnico
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate("/home")}
+              disabled={loading}
+            >
+              Volver
+            </Button>
+          </Box>
         </Box>
 
-        {loading && maquinas.length === 0 ? (
+        {loading && tecnicos.length === 0 ? (
           <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-            <Typography>Cargando máquinas...</Typography>
+            <Typography>Cargando técnicos...</Typography>
           </Box>
         ) : (
           <Grid container spacing={2}>
-            {maquinas.map((maquina) => {
+            {tecnicos.map((tecnico) => {
               return (
-                <Grid item xs={12} sm={6} md={4} key={maquina.id}>
+                <Grid item xs={12} sm={6} md={4} key={tecnico.id}>
                   <Card elevation={2} sx={{ height: "100%" }}>
                     <CardContent>
                       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
                         <Typography variant="h6" component="div">
-                          {maquina.modelo || "Sin modelo"}
+                          {tecnico.nombre || "Sin nombre"}
                         </Typography>
                         <IconButton
                           size="small"
-                          onClick={(e) => handleMenuClick(e, maquina)}
+                          onClick={(e) => handleMenuClick(e, tecnico)}
                         >
                           <MoreVert />
                         </IconButton>
                       </Box>
 
                       <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <strong>ID:</strong> {maquina.id}
-                      </Typography>
-
-                      <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <AttachMoney fontSize="small" />
-                        <strong>Alquiler mensual:</strong> {formatCurrency(maquina.costo_alquiler_mensual)}
-                      </Typography>
-
-                      <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
                         <Person fontSize="small" />
-                        <strong>Cliente ID:</strong> {maquina.id_cliente}
+                        <strong>ID:</strong> {tecnico.id}
                       </Typography>
 
-                      {maquina.ubicacion_cliente && (
-                        <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
-                          <LocationOn fontSize="small" />
-                          <strong>Ubicación:</strong> {maquina.ubicacion_cliente}
-                        </Typography>
-                      )}
+                      <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
+                        <Build fontSize="small" />
+                        <strong>Especialidad:</strong> {tecnico.especialidad}
+                      </Typography>
+
+                      <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
+                        <strong>Teléfono:</strong> {tecnico.telefono}
+                      </Typography>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -262,12 +245,12 @@ const handleChange = (e) => {
           open={Boolean(anchorEl)}
           onClose={handleCloseMenu}
         >
-          <MenuItem onClick={() => abrirModalModificar(selectedMaquina)}>
+          <MenuItem onClick={() => abrirModalModificar(selectedTecnico)}>
             <Edit sx={{ mr: 1 }} fontSize="small" />
             Modificar
           </MenuItem>
           <MenuItem
-            onClick={() => handleEliminar(selectedMaquina?.id)}
+            onClick={() => handleEliminar(selectedTecnico?.id)}
             sx={{ color: 'error.main' }}
           >
             <Delete sx={{ mr: 1 }} fontSize="small" />
@@ -275,65 +258,48 @@ const handleChange = (e) => {
           </MenuItem>
         </Menu>
 
-        {/* Dialog para agregar/modificar máquina */}
+        {/* Dialog para agregar/modificar técnico */}
         <Dialog open={showModal} onClose={cerrarModal} fullWidth maxWidth="md">
           <DialogTitle>
-            {modalMode === "agregar" ? "Agregar Máquina" : "Modificar Máquina"}
+            {modalMode === "agregar" ? "Agregar Técnico" : "Modificar Técnico"}
           </DialogTitle>
           <form onSubmit={handleSubmit}>
             <DialogContent>
               <Grid container spacing={2} sx={{ pt: 1 }}>
                 <Grid item xs={12} sm={6}>
                   <TextField
-                    label="Modelo"
-                    name="modelo"
-                    value={maquinaActual.modelo}
+                    label="Nombre"
+                    name="nombre"
+                    value={tecnicoActual.nombre}
                     onChange={handleChange}
                     required
                     fullWidth
                     variant="outlined"
-                    placeholder="Ej: Eco100"
+                    placeholder="Ej: Juan Pérez"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
-                    label="Costo Alquiler Mensual"
-                    name="costo_alquiler_mensual"
-                    value={maquinaActual.costo_alquiler_mensual}
+                    label="Especialidad"
+                    name="especialidad"
+                    value={tecnicoActual.especialidad}
                     onChange={handleChange}
                     required
                     fullWidth
                     variant="outlined"
-                    type="number"
-                    step="0.01"
-                    placeholder="1800.00"
-                    InputProps={{
-                      startAdornment: <Typography color="text.secondary">$</Typography>,
-                    }}
+                    placeholder="Ej: Electricista"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
-                    label="ID Cliente"
-                    name="id_cliente"
-                    value={maquinaActual.id_cliente}
+                    label="Teléfono"
+                    name="telefono"
+                    value={tecnicoActual.telefono}
                     onChange={handleChange}
                     required
                     fullWidth
                     variant="outlined"
-                    type="number"
-                    placeholder="2"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Ubicación Cliente"
-                    name="ubicacion_cliente"
-                    value={maquinaActual.ubicacion_cliente}
-                    onChange={handleChange}
-                    fullWidth
-                    variant="outlined"
-                    placeholder="Ej: Recepción"
+                    placeholder="099123456"
                   />
                 </Grid>
               </Grid>
@@ -357,8 +323,8 @@ const handleChange = (e) => {
           </form>
         </Dialog>
 
-        {/* Mensaje cuando no hay máquinas */}
-        {!loading && maquinas.length === 0 && (
+        {/* Mensaje cuando no hay técnicos */}
+        {!loading && tecnicos.length === 0 && (
           <Box
             sx={{
               display: "flex",
@@ -369,7 +335,7 @@ const handleChange = (e) => {
             }}
           >
             <Typography variant="h6" color="text.secondary">
-              No hay máquinas registradas
+              No hay técnicos registrados
             </Typography>
             <Button
               variant="outlined"
@@ -377,7 +343,7 @@ const handleChange = (e) => {
               onClick={abrirModalAgregar}
               sx={{ mt: 2 }}
             >
-              Agregar nueva máquina
+              Agregar nuevo técnico
             </Button>
           </Box>
         )}
@@ -402,4 +368,4 @@ const handleChange = (e) => {
   );
 };
 
-export default Maquinas;
+export default Tecnicos;

@@ -20,8 +20,13 @@ import {
   Grid,
   Card,
   CardContent,
+  Snackbar,
+  Alert,
+  Menu,
+  MenuItem,
+  IconButton,
 } from "@mui/material";
-import { Add, Edit, Delete, Business } from "@mui/icons-material";
+import { Add, Edit, Delete, MoreVert, Business, ContactPhone } from "@mui/icons-material";
 
 const Proveedores = () => {
   const navigate = useNavigate();
@@ -29,33 +34,62 @@ const Proveedores = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState("agregar");
   const [proveedorActual, setProveedorActual] = useState({
+    id: "",
     nombre: "",
     contacto: "",
-    id: "", // solo para uso interno
   });
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedProveedor, setSelectedProveedor] = useState(null);
 
   useEffect(() => {
-    const fetchProveedores = async () => {
-      const proveedoresData = await obtenerProveedores();
-      setProveedores(proveedoresData);
-    };
     fetchProveedores();
   }, []);
 
+  const fetchProveedores = async () => {
+    try {
+      setLoading(true);
+      const data = await obtenerProveedores();
+      setProveedores(data);
+    } catch (error) {
+      mostrarSnackbar("Error al cargar proveedores: " + error.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const mostrarSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
+
+  const cerrarSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   const abrirModalAgregar = () => {
     setProveedorActual({
+      id: "",
       nombre: "",
       contacto: "",
-      id: "",
     });
     setModalMode("agregar");
     setShowModal(true);
   };
 
   const abrirModalModificar = (proveedor) => {
-    setProveedorActual(proveedor);
+    setProveedorActual({ ...proveedor });
     setModalMode("modificar");
     setShowModal(true);
+    handleCloseMenu();
   };
 
   const cerrarModal = () => {
@@ -69,38 +103,53 @@ const Proveedores = () => {
     });
   };
 
-  const handleAgregar = async (nuevoProveedor) => {
-    await agregarProveedor(nuevoProveedor);
-    const proveedoresData = await obtenerProveedores();
-    setProveedores(proveedoresData);
-  };
-
-  const handleModificar = async (id, nuevosDatos) => {
-    await modificarProveedor(id, nuevosDatos);
-    const proveedoresData = await obtenerProveedores();
-    setProveedores(proveedoresData);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (modalMode === "agregar") {
+        await agregarProveedor(proveedorActual);
+        mostrarSnackbar("Proveedor agregado exitosamente");
+      } else {
+        await modificarProveedor(proveedorActual.id, proveedorActual);
+        mostrarSnackbar("Proveedor modificado exitosamente");
+      }
+      setShowModal(false);
+      await fetchProveedores();
+    } catch (error) {
+      mostrarSnackbar(
+        `Error al ${modalMode === "agregar" ? "agregar" : "modificar"} proveedor: ${error.message}`,
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEliminar = async (id) => {
-    await eliminarProveedor(id);
-    const proveedoresData = await obtenerProveedores();
-    setProveedores(proveedoresData);
+    if (window.confirm("¿Estás seguro de que deseas eliminar este proveedor?")) {
+      try {
+        setLoading(true);
+        await eliminarProveedor(id);
+        mostrarSnackbar("Proveedor eliminado exitosamente");
+        await fetchProveedores();
+      } catch (error) {
+        mostrarSnackbar("Error al eliminar proveedor: " + error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+    handleCloseMenu();
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (modalMode === "agregar") {
-      await handleAgregar({
-        nombre: proveedorActual.nombre,
-        contacto: proveedorActual.contacto,
-      });
-    } else {
-      await handleModificar(proveedorActual.id, {
-        nombre: proveedorActual.nombre,
-        contacto: proveedorActual.contacto,
-      });
-    }
-    setShowModal(false);
+  const handleMenuClick = (event, proveedor) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedProveedor(proveedor);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+    setSelectedProveedor(null);
   };
 
   return (
@@ -117,51 +166,81 @@ const Proveedores = () => {
           <Typography variant="h4" component="h1" gutterBottom>
             Gestión de Proveedores
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Business />}
-            onClick={abrirModalAgregar}
-          >
-            Agregar Proveedor
-          </Button>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Add />}
+              onClick={abrirModalAgregar}
+              disabled={loading}
+            >
+              Agregar Proveedor
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate("/home")}
+              disabled={loading}
+            >
+              Volver
+            </Button>
+          </Box>
         </Box>
 
-        <Grid container spacing={2}>
-          {proveedores.map((proveedor) => (
-            <Grid key={proveedor.id}>
-              <Card elevation={2} sx={{ height: "100%" }}>
-                <CardContent>
-                  <Typography variant="h6" component="div">
-                    {proveedor.nombre}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Contacto: {proveedor.contacto}
-                  </Typography>
-                  <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 1 }}>
-                    <Button
-                      size="small"
-                      startIcon={<Edit />}
-                      variant="outlined"
-                      onClick={() => abrirModalModificar(proveedor)}
-                    >
-                      Modificar
-                    </Button>
-                    <Button
-                      size="small"
-                      startIcon={<Delete />}
-                      variant="outlined"
-                      color="error"
-                      onClick={() => handleEliminar(proveedor.id)}
-                    >
-                      Eliminar
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        {loading && proveedores.length === 0 ? (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+            <Typography>Cargando proveedores...</Typography>
+          </Box>
+        ) : (
+          <Grid container spacing={2}>
+            {proveedores.map((proveedor) => (
+              <Grid item key={proveedor.id} xs={12} sm={6} md={4}>
+                <Card elevation={2} sx={{ height: "100%" }}>
+                  <CardContent>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                      <Typography variant="h6" component="div">
+                        {proveedor.nombre || "Sin nombre"}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuClick(e, proveedor)}
+                      >
+                        <MoreVert />
+                      </IconButton>
+                    </Box>
+                    <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Business fontSize="small" />
+                      <strong>ID:</strong> {proveedor.id}
+                    </Typography>
+                    <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <ContactPhone fontSize="small" />
+                      <strong>Contacto:</strong> {proveedor.contacto}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+
+        {/* Menú contextual */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleCloseMenu}
+        >
+          <MenuItem onClick={() => abrirModalModificar(selectedProveedor)}>
+            <Edit sx={{ mr: 1 }} fontSize="small" />
+            Modificar
+          </MenuItem>
+          <MenuItem
+            onClick={() => handleEliminar(selectedProveedor?.id)}
+            sx={{ color: 'error.main' }}
+          >
+            <Delete sx={{ mr: 1 }} fontSize="small" />
+            Eliminar
+          </MenuItem>
+        </Menu>
 
         {/* Dialog para agregar/modificar proveedor */}
         <Dialog open={showModal} onClose={cerrarModal} fullWidth maxWidth="sm">
@@ -172,44 +251,49 @@ const Proveedores = () => {
           </DialogTitle>
           <form onSubmit={handleSubmit}>
             <DialogContent>
-              <Box
-                sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
-              >
-                <TextField
-                  label="Nombre"
-                  name="nombre"
-                  value={proveedorActual.nombre}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                />
-                <TextField
-                  label="Contacto"
-                  name="contacto"
-                  value={proveedorActual.contacto}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                />
-              </Box>
+              <Grid container spacing={2} sx={{ pt: 1 }}>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Nombre"
+                    name="nombre"
+                    value={proveedorActual.nombre}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Ej: Proveedor S.A."
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Contacto"
+                    name="contacto"
+                    value={proveedorActual.contacto}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Ej: 099123456"
+                  />
+                </Grid>
+              </Grid>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
-              <Button onClick={cerrarModal} color="inherit">
+              <Button onClick={cerrarModal} color="inherit" disabled={loading}>
                 Cancelar
               </Button>
-              <Button type="submit" variant="contained" color="primary">
-                {modalMode === "agregar" ? "Agregar" : "Modificar"}
+              <Button type="submit" variant="contained" color="primary" disabled={loading}>
+                {loading
+                  ? (modalMode === "agregar" ? "Agregando..." : "Modificando...")
+                  : (modalMode === "agregar" ? "Agregar" : "Modificar")
+                }
               </Button>
             </DialogActions>
           </form>
         </Dialog>
 
         {/* Mensaje cuando no hay proveedores */}
-        {proveedores.length === 0 && (
+        {!loading && proveedores.length === 0 && (
           <Box
             sx={{
               display: "flex",
@@ -232,6 +316,22 @@ const Proveedores = () => {
             </Button>
           </Box>
         )}
+
+        {/* Snackbar para notificaciones */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={cerrarSnackbar}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        >
+          <Alert
+            onClose={cerrarSnackbar}
+            severity={snackbar.severity}
+            sx={{ width: "100%" }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Paper>
     </Container>
   );

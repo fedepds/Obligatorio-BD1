@@ -21,7 +21,7 @@ import {
   MenuItem,
   IconButton,
 } from "@mui/material";
-import { Add, Edit, PersonAdd, Delete, MoreVert } from "@mui/icons-material";
+import { Add, Edit, Delete, MoreVert, Person } from "@mui/icons-material";
 
 const Clientes = () => {
   const [clientes, setClientes] = useState([]);
@@ -176,15 +176,25 @@ const Clientes = () => {
           <Typography variant="h4" component="h1" gutterBottom>
             Gestión de Clientes
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<PersonAdd />}
-            onClick={abrirModalAgregar}
-            disabled={loading}
-          >
-            Agregar Cliente
-          </Button>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Add />}
+              onClick={abrirModalAgregar}
+              disabled={loading}
+            >
+              Agregar Cliente
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate("/home")}
+              disabled={loading}
+            >
+              Volver
+            </Button>
+          </Box>
         </Box>
 
         {loading && clientes.length === 0 ? (
@@ -197,7 +207,7 @@ const Clientes = () => {
               <Grid item xs={12} sm={6} md={4} key={cliente.ci}>
                 <Card elevation={2} sx={{ height: "100%" }}>
                   <CardContent>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
                       <Typography variant="h6" component="div">
                         {cliente.nombre} {cliente.apellido}
                       </Typography>
@@ -208,31 +218,27 @@ const Clientes = () => {
                         <MoreVert />
                       </IconButton>
                     </Box>
-
-                    <Typography color="text.secondary" variant="body2">
+                    <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Person fontSize="small" />
                       <strong>CI:</strong> {cliente.ci}
                     </Typography>
-
                     {cliente.correo_electronico && (
-                      <Typography color="text.secondary" variant="body2">
+                      <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
                         <strong>Email:</strong> {cliente.correo_electronico}
                       </Typography>
                     )}
-
                     {cliente.telefono && (
-                      <Typography color="text.secondary" variant="body2">
+                      <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
                         <strong>Teléfono:</strong> {cliente.telefono}
                       </Typography>
                     )}
-
                     {cliente.direccion && (
-                      <Typography color="text.secondary" variant="body2">
+                      <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
                         <strong>Dirección:</strong> {cliente.direccion}
                       </Typography>
                     )}
-
                     {cliente.fecha_nacimiento && (
-                      <Typography color="text.secondary" variant="body2">
+                      <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
                         <strong>Fecha Nac:</strong> {new Date(cliente.fecha_nacimiento).toLocaleDateString()}
                       </Typography>
                     )}

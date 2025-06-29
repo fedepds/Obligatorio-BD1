@@ -20,73 +20,129 @@ import {
   Grid,
   Card,
   CardContent,
+  Snackbar,
+  Alert,
+  Menu,
+  MenuItem,
   IconButton,
 } from "@mui/material";
-import { Add, Edit, Delete, Build } from "@mui/icons-material";
+import { Add, Edit, Delete, MoreVert, Build } from "@mui/icons-material";
 
 const Mantenimiento = () => {
   const [mantenimientos, setMantenimientos] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState("agregar");
+  const [mantenimientoActual, setMantenimientoActual] = useState({
+    id: "",
+    nombre: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedMantenimiento, setSelectedMantenimiento] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchMantenimientos = async () => {
-      const data = await obtenerMantenimientos();
-      setMantenimientos(data);
-    };
     fetchMantenimientos();
   }, []);
 
-  const handleAgregar = async (nuevoMantenimiento) => {
-    await agregarMantenimiento(nuevoMantenimiento);
-    const data = await obtenerMantenimientos();
-    setMantenimientos(data);
+  const fetchMantenimientos = async () => {
+    try {
+      setLoading(true);
+      const data = await obtenerMantenimientos();
+      setMantenimientos(data);
+    } catch (error) {
+      mostrarSnackbar("Error al cargar mantenimientos: " + error.message, "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleModificar = async (id, cambios) => {
-    await modificarMantenimiento(id, cambios);
-    const data = await obtenerMantenimientos();
-    setMantenimientos(data);
+  const mostrarSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
+
+  const cerrarSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const abrirModalAgregar = () => {
+    setMantenimientoActual({ id: "", nombre: "" });
+    setModalMode("agregar");
+    setShowModal(true);
+  };
+
+  const abrirModalModificar = (mantenimiento) => {
+    setMantenimientoActual({ ...mantenimiento });
+    setModalMode("modificar");
+    setShowModal(true);
+    handleCloseMenu();
+  };
+
+  const cerrarModal = () => setShowModal(false);
+
+  const handleChange = (e) => {
+    setMantenimientoActual({
+      ...mantenimientoActual,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (modalMode === "agregar") {
+        await agregarMantenimiento(mantenimientoActual);
+        mostrarSnackbar("Mantenimiento agregado exitosamente");
+      } else {
+        await modificarMantenimiento(mantenimientoActual.id, { nombre: mantenimientoActual.nombre });
+        mostrarSnackbar("Mantenimiento modificado exitosamente");
+      }
+      setShowModal(false);
+      await fetchMantenimientos();
+    } catch (error) {
+      mostrarSnackbar(
+        `Error al ${modalMode === "agregar" ? "agregar" : "modificar"} mantenimiento: ${error.message}`,
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEliminar = async (id) => {
-    await eliminarMantenimiento(id);
-    setMantenimientos(mantenimientos.filter((m) => m.id !== id));
-  };
-
-  const [showModal, setShowModal] = useState(false);
-  const [modalData, setModalData] = useState({ nombre: "" });
-  const [isEditing, setIsEditing] = useState(false);
-  const [editId, setEditId] = useState(null);
-
-  const openAgregarModal = () => {
-    setModalData({ nombre: "" });
-    setIsEditing(false);
-    setShowModal(true);
-  };
-
-  const openModificarModal = (mantenimiento) => {
-    setModalData({ nombre: mantenimiento.nombre });
-    setIsEditing(true);
-    setEditId(mantenimiento.id);
-    setShowModal(true);
-  };
-
-  const handleModalChange = (e) => {
-    setModalData({ ...modalData, [e.target.name]: e.target.value });
-  };
-
-  const handleModalSubmit = async (e) => {
-    e.preventDefault();
-    if (isEditing) {
-      await handleModificar(editId, modalData);
-    } else {
-      await handleAgregar(modalData);
+    if (window.confirm("¿Estás seguro de que deseas eliminar este mantenimiento?")) {
+      try {
+        setLoading(true);
+        await eliminarMantenimiento(id);
+        mostrarSnackbar("Mantenimiento eliminado exitosamente");
+        await fetchMantenimientos();
+      } catch (error) {
+        mostrarSnackbar("Error al eliminar mantenimiento: " + error.message, "error");
+      } finally {
+        setLoading(false);
+      }
     }
-    setShowModal(false);
+    handleCloseMenu();
   };
 
-  const handleModalClose = () => {
-    setShowModal(false);
+  const handleMenuClick = (event, mantenimiento) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedMantenimiento(mantenimiento);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+    setSelectedMantenimiento(null);
   };
 
   return (
@@ -103,96 +159,129 @@ const Mantenimiento = () => {
           <Typography variant="h4" component="h1" gutterBottom>
             Gestión de Mantenimientos
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Build />}
-            onClick={openAgregarModal}
-          >
-            Agregar Mantenimiento
-          </Button>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Add />}
+              onClick={abrirModalAgregar}
+              disabled={loading}
+            >
+              Agregar Mantenimiento
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate("/home")}
+              disabled={loading}
+            >
+              Volver
+            </Button>
+          </Box>
         </Box>
 
-        <Grid container spacing={2}>
-          {mantenimientos.map((mantenimiento) => (
-            <Grid item xs={12} sm={6} md={4} key={mantenimiento.id}>
-              <Card elevation={2} sx={{ height: "100%" }}>
-                <CardContent>
-                  <Typography variant="h6" component="div">
-                    {mantenimiento.nombre}
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      mt: 2,
-                      gap: 1,
-                    }}
-                  >
-                    <Button
-                      size="small"
-                      startIcon={<Edit />}
-                      variant="outlined"
-                      onClick={() => openModificarModal(mantenimiento)}
-                    >
-                      Modificar
-                    </Button>
-                    <Button
-                      size="small"
-                      startIcon={<Delete />}
-                      variant="outlined"
-                      color="error"
-                      onClick={() => handleEliminar(mantenimiento.id)}
-                    >
-                      Eliminar
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        {loading && mantenimientos.length === 0 ? (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+            <Typography>Cargando mantenimientos...</Typography>
+          </Box>
+        ) : (
+          <Grid container spacing={2}>
+            {mantenimientos.map((mantenimiento) => (
+              <Grid item xs={12} sm={6} md={4} key={mantenimiento.id}>
+                <Card elevation={2} sx={{ height: "100%" }}>
+                  <CardContent>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                      <Typography variant="h6" component="div">
+                        {mantenimiento.nombre}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuClick(e, mantenimiento)}
+                      >
+                        <MoreVert />
+                      </IconButton>
+                    </Box>
+                    <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
+                      <Build fontSize="small" />
+                      <strong>ID:</strong> {mantenimiento.id}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
 
-        {/* Dialog para agregar/modificar mantenimiento */}
-        <Dialog
-          open={showModal}
-          onClose={handleModalClose}
-          fullWidth
-          maxWidth="sm"
+        {/* Menú contextual */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleCloseMenu}
         >
+          <MenuItem onClick={() => abrirModalModificar(selectedMantenimiento)}>
+            <Edit sx={{ mr: 1 }} fontSize="small" />
+            Modificar
+          </MenuItem>
+          <MenuItem
+            onClick={() => handleEliminar(selectedMantenimiento?.id)}
+            sx={{ color: 'error.main' }}
+          >
+            <Delete sx={{ mr: 1 }} fontSize="small" />
+            Eliminar
+          </MenuItem>
+        </Menu>
+
+        {/* Dialog para agregar/modificar */}
+        <Dialog open={showModal} onClose={cerrarModal} fullWidth maxWidth="sm">
           <DialogTitle>
-            {isEditing ? "Modificar Mantenimiento" : "Agregar Mantenimiento"}
+            {modalMode === "agregar" ? "Agregar Mantenimiento" : "Modificar Mantenimiento"}
           </DialogTitle>
-          <form onSubmit={handleModalSubmit}>
+          <form onSubmit={handleSubmit}>
             <DialogContent>
-              <Box
-                sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
-              >
-                <TextField
-                  label="Nombre"
-                  name="nombre"
-                  value={modalData.nombre}
-                  onChange={handleModalChange}
-                  required
-                  fullWidth
-                  variant="outlined"
-                  margin="dense"
-                />
-              </Box>
+              <Grid container spacing={2} sx={{ pt: 1 }}>
+                {modalMode === "modificar" && (
+                  <Grid item xs={12}>
+                    <TextField
+                      label="ID"
+                      name="id"
+                      value={mantenimientoActual.id}
+                      InputProps={{ readOnly: true }}
+                      fullWidth
+                      variant="outlined"
+                      margin="dense"
+                    />
+                  </Grid>
+                )}
+                <Grid item xs={12}>
+                  <TextField
+                    label="Nombre"
+                    name="nombre"
+                    value={mantenimientoActual.nombre}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    variant="outlined"
+                    margin="dense"
+                  />
+                </Grid>
+              </Grid>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
-              <Button onClick={handleModalClose} color="inherit">
+              <Button onClick={cerrarModal} color="inherit" disabled={loading}>
                 Cancelar
               </Button>
-              <Button type="submit" variant="contained" color="primary">
-                {isEditing ? "Guardar Cambios" : "Agregar"}
+              <Button type="submit" variant="contained" color="primary" disabled={loading}>
+                {loading
+                  ? (modalMode === "agregar" ? "Agregando..." : "Modificando...")
+                  : (modalMode === "agregar" ? "Agregar" : "Modificar")
+                }
               </Button>
             </DialogActions>
           </form>
         </Dialog>
 
         {/* Mensaje cuando no hay mantenimientos */}
-        {mantenimientos.length === 0 && (
+        {!loading && mantenimientos.length === 0 && (
           <Box
             sx={{
               display: "flex",
@@ -208,13 +297,29 @@ const Mantenimiento = () => {
             <Button
               variant="outlined"
               startIcon={<Add />}
-              onClick={openAgregarModal}
+              onClick={abrirModalAgregar}
               sx={{ mt: 2 }}
             >
               Agregar nuevo mantenimiento
             </Button>
           </Box>
         )}
+
+        {/* Snackbar para notificaciones */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={cerrarSnackbar}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        >
+          <Alert
+            onClose={cerrarSnackbar}
+            severity={snackbar.severity}
+            sx={{ width: "100%" }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Paper>
     </Container>
   );
