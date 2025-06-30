@@ -1,19 +1,13 @@
 const API_URL = "http://127.0.0.1:5000";
 
-const getToken = () => localStorage.getItem('token');
-// Función genérica peticiones API
+// Función genérica para peticiones API
 const peticionAPI = async (endpoint, method = "GET", body = null) => {
   try {
     const options = {
       method,
       headers: {},
+      credentials: 'include', // Importante para enviar cookies entre dominios
     };
-
-    // Agregar token
-    const token = getToken();
-    if (token) {
-      options.headers["Authorization"] = `Bearer ${token}`;
-    }
 
     if (body) {
       options.headers["Content-Type"] = "application/json";
@@ -24,9 +18,8 @@ const peticionAPI = async (endpoint, method = "GET", body = null) => {
 
     // Si hay error 401 (no autorizado) o 403 (prohibido), redirigir al login
     if (response.status === 401 || response.status === 403) {
-      localStorage.removeItem('token');
       localStorage.removeItem('usuario');
-      window.location.href = '/login';
+      window.location.href = '/';
       throw new Error('Sesión expirada o sin permisos');
     }
 
@@ -43,9 +36,6 @@ const peticionAPI = async (endpoint, method = "GET", body = null) => {
   }
 };
 
-
-
-
 // ---------------- USUARIOS ----------------
 
 export const registrarUsuario = (correo, password, es_administrador = false) =>
@@ -57,15 +47,16 @@ export const registrarUsuario = (correo, password, es_administrador = false) =>
 
 export const loginUsuario = async (correo, password) => {
   const respuesta = await peticionAPI("/api/usuarios/login", "POST", { correo, password });
-  // Guardar token y datos
-  localStorage.setItem('token', respuesta.token);
+  // Solo guardamos datos del usuario en localStorage para la interfaz
+  // La autenticación real se mantiene en la cookie de sesión
   localStorage.setItem('usuario', JSON.stringify(respuesta.usuario));
   return respuesta;
 };
-export const cerrarSesion = () => {
-  localStorage.removeItem('token');
+
+export const cerrarSesion = async () => {
+  await peticionAPI("/api/usuarios/logout", "POST");
   localStorage.removeItem('usuario');
-  window.location.href = '/login';
+  window.location.href = '/';
 };
 
 export const obtenerUsuarios = () => peticionAPI("/api/usuarios");
