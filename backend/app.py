@@ -1,18 +1,25 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import mysql.connector
-import jwt
 from dotenv import load_dotenv
 from functools import wraps
 import os
+from flask_session import Session
 
 # Cargar variables de entorno desde .env
 load_dotenv()
 
 # Configuración de la aplicación Flask
 app = Flask(__name__)
-CORS(app)
+app.config["SECRET_KEY"] = os.getenv('SECRET_KEY', 'clave-secreta-temporal')
+app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_PERMANENT"] = True
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=3)
+
+# Inicializar Flask-Session
+Session(app)
+CORS(app, supports_credentials=True)  # Habilita credenciales para cookies
 
 # Función para crear la conexión a la base de datos
 def get_db_connection():
@@ -24,46 +31,27 @@ def get_db_connection():
         database=os.getenv('DB_NAME')
     )
     return conn
-SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'clave-secreta-temporal')
 
-
-def token_required(f):
+# Decorador para requerir autenticación
+def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = None
-        if 'Authorization' in request.headers:
-            token = request.headers['Authorization'].split(' ')[1]
-
-        if not token:
-            return jsonify({'error': 'Token no proporcionado'}), 401
-
-        try:
-            data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            # Añadir información del usuario a la solicitud
-            request.usuario = data
-        except:
-            return jsonify({'error': 'Token inválido o expirado'}), 401
-
+        if "usuario_id" not in session:
+            return jsonify({'error': 'No autenticado'}), 401
         return f(*args, **kwargs)
-
     return decorated
 
-
+# Decorador para requerir privilegios de administrador
 def admin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        # Primero verificamos el token
-        token_result = token_required(lambda: None)()
-        if isinstance(token_result, tuple):  # Es un error
-            return token_result
-
-        # Verificamos si es administrador
-        if not request.usuario.get('es_administrador'):
+        if "usuario_id" not in session:
+            return jsonify({'error': 'No autenticado'}), 401
+        if not session.get("es_administrador"):
             return jsonify({'error': 'Requiere privilegios de administrador'}), 403
-
         return f(*args, **kwargs)
-
     return decorated
+
 # ----------------------------- USUARIOS ---------------------------------
 @app.route('/api/usuarios/login', methods=['POST'])
 def login_usuario():
@@ -72,7 +60,7 @@ def login_usuario():
     password = data.get('password')
     try:
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)  # Para obtener resultados como diccionario
+        cursor = conn.cursor(dictionary=True)
         query = "SELECT * FROM login WHERE correo = %s AND password = %s"
         cursor.execute(query, (correo, password))
         result = cursor.fetchone()
@@ -80,16 +68,12 @@ def login_usuario():
         conn.close()
 
         if result:
-            # Generar token JWT
-            payload = {
-                'correo': result['correo'],
-                'es_administrador': bool(result['es_administrador']),
-                'exp': datetime.utcnow() + timedelta(hours=3)
-            }
-            token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+            # Usar correo como identificador principal, ya que es la PRIMARY KEY en la tabla login
+            session["usuario_id"] = result["correo"]  # Cambio aquí
+            session["correo"] = result["correo"]
+            session["es_administrador"] = bool(result["es_administrador"])
 
             return jsonify({
-                'token': token,
                 'usuario': {
                     'correo': result['correo'],
                     'es_administrador': bool(result['es_administrador'])
@@ -100,11 +84,14 @@ def login_usuario():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-
-
+@app.route('/api/usuarios/logout', methods=['POST'])
+def logout_usuario():
+    session.clear()
+    return jsonify({'message': 'Sesión cerrada correctamente'}), 200
 
 # ----------------------------- CLIENTES ---------------------------------
 @app.route('/api/clientes', methods=['POST'])
+@login_required
 def agregar_cliente_route():
     data = request.get_json()
     try:
@@ -122,6 +109,7 @@ def agregar_cliente_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/clientes/<ci>', methods=['DELETE'])
+@login_required
 def eliminar_cliente_route(ci):
     try:
         conn = get_db_connection()
@@ -136,6 +124,7 @@ def eliminar_cliente_route(ci):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/clientes', methods=['GET'])
+@login_required
 def obtener_clientes_route():
     try:
         conn = get_db_connection()
@@ -149,15 +138,16 @@ def obtener_clientes_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/clientes/<ci>', methods=['PUT'])
+@login_required
 def modificar_cliente_route(ci):
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """UPDATE clientes SET nombre = %s, apellido = %s, direccion = %s, 
-                   fecha_nacimiento = %s, telefono = %s, correo_electronico = %s 
+        query = """UPDATE clientes SET nombre = %s, apellido = %s, direccion = %s,
+                   fecha_nacimiento = %s, telefono = %s, correo_electronico = %s
                    WHERE ci = %s"""
-        values = (data['nombre'], data['apellido'], data['direccion'], 
+        values = (data['nombre'], data['apellido'], data['direccion'],
                  data['fecha_nacimiento'], data['telefono'], data['correo_electronico'], ci)
         cursor.execute(query, values)
         conn.commit()
@@ -169,7 +159,7 @@ def modificar_cliente_route(ci):
 
 # ----------------------------- PROVEEDORES ---------------------------------
 @app.route('/api/proveedores', methods=['POST'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def agregar_proveedor_route():
     data = request.get_json()
     try:
@@ -185,7 +175,7 @@ def agregar_proveedor_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/proveedores/<id>', methods=['DELETE'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def eliminar_proveedor_route(id):
     try:
         conn = get_db_connection()
@@ -200,7 +190,7 @@ def eliminar_proveedor_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/proveedores/<id>', methods=['PUT'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def modificar_proveedor_route(id):
     data = request.get_json()
     try:
@@ -216,7 +206,7 @@ def modificar_proveedor_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/proveedores', methods=['GET'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def obtener_proveedores_route():
     try:
         conn = get_db_connection()
@@ -231,14 +221,15 @@ def obtener_proveedores_route():
 
 # ----------------------------- INSUMOS ---------------------------------
 @app.route('/api/insumos', methods=['POST'])
+@login_required
 def agregar_insumo_route():
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """INSERT INTO insumos (codigo, nombre, descripcion, cantidad, precio, proveedor_id) 
+        query = """INSERT INTO insumos (codigo, nombre, descripcion, cantidad, precio, proveedor_id)
                    VALUES (%s, %s, %s, %s, %s, %s)"""
-        values = (data['codigo'], data['nombre'], data['descripcion'], 
+        values = (data['codigo'], data['nombre'], data['descripcion'],
                  data['cantidad'], data['precio'], data['proveedor_id'])
         cursor.execute(query, values)
         conn.commit()
@@ -249,6 +240,7 @@ def agregar_insumo_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/insumos/<codigo>', methods=['DELETE'])
+@login_required
 def eliminar_insumo_route(codigo):
     try:
         conn = get_db_connection()
@@ -263,14 +255,15 @@ def eliminar_insumo_route(codigo):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/insumos/<codigo>', methods=['PUT'])
+@login_required
 def modificar_insumo_route(codigo):
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """UPDATE insumos SET nombre = %s, descripcion = %s, cantidad = %s, 
+        query = """UPDATE insumos SET nombre = %s, descripcion = %s, cantidad = %s,
                    precio = %s, proveedor_id = %s WHERE codigo = %s"""
-        values = (data['nombre'], data['descripcion'], data['cantidad'], 
+        values = (data['nombre'], data['descripcion'], data['cantidad'],
                  data['precio'], data['proveedor_id'], codigo)
         cursor.execute(query, values)
         conn.commit()
@@ -281,6 +274,7 @@ def modificar_insumo_route(codigo):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/insumos', methods=['GET'])
+@login_required
 def obtener_insumos_route():
     try:
         conn = get_db_connection()
@@ -295,7 +289,7 @@ def obtener_insumos_route():
 
 # ----------------------------- TECNICOS ---------------------------------
 @app.route('/api/tecnicos', methods=['POST'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def agregar_tecnico_route():
     data = request.get_json()
     try:
@@ -311,7 +305,7 @@ def agregar_tecnico_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos/<id>', methods=['DELETE'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def eliminar_tecnico_route(id):
     try:
         conn = get_db_connection()
@@ -326,7 +320,7 @@ def eliminar_tecnico_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos/<id>', methods=['PUT'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def modificar_tecnico_route(id):
     data = request.get_json()
     try:
@@ -342,7 +336,7 @@ def modificar_tecnico_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos', methods=['GET'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def obtener_tecnicos_route():
     try:
         conn = get_db_connection()
@@ -357,12 +351,13 @@ def obtener_tecnicos_route():
 
 # ----------------------------- MANTENIMIENTOS ---------------------------------
 @app.route('/api/mantenimientos', methods=['POST'])
+@login_required
 def agregar_mantenimiento_route():
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """INSERT INTO mantenimientos (fecha, descripcion, tecnico_id, maquina_id) 
+        query = """INSERT INTO mantenimientos (fecha, descripcion, tecnico_id, maquina_id)
                    VALUES (%s, %s, %s, %s)"""
         values = (data['fecha'], data['descripcion'], data['tecnico_id'], data['maquina_id'])
         cursor.execute(query, values)
@@ -374,6 +369,7 @@ def agregar_mantenimiento_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/mantenimientos/<int:id>', methods=['DELETE'])
+@login_required
 def eliminar_mantenimiento_route(id):
     try:
         conn = get_db_connection()
@@ -388,12 +384,13 @@ def eliminar_mantenimiento_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/mantenimientos/<int:id>', methods=['PUT'])
+@login_required
 def modificar_mantenimiento_route(id):
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """UPDATE mantenimientos SET fecha = %s, descripcion = %s, 
+        query = """UPDATE mantenimientos SET fecha = %s, descripcion = %s,
                    tecnico_id = %s, maquina_id = %s WHERE id = %s"""
         values = (data['fecha'], data['descripcion'], data['tecnico_id'], data['maquina_id'], id)
         cursor.execute(query, values)
@@ -405,6 +402,7 @@ def modificar_mantenimiento_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/mantenimientos', methods=['GET'])
+@login_required
 def obtener_mantenimientos_route():
     try:
         conn = get_db_connection()
@@ -419,12 +417,13 @@ def obtener_mantenimientos_route():
 
 # ----------------------------- REGISTRO CONSUMO ---------------------------------
 @app.route('/api/registro-consumo', methods=['POST'])
+@login_required
 def registrar_consumo_route():
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """INSERT INTO registro_consumo (id_maquina, id_insumo, fecha, cantidad_usada) 
+        query = """INSERT INTO registro_consumo (id_maquina, id_insumo, fecha, cantidad_usada)
                    VALUES (%s, %s, %s, %s)"""
         values = (data['id_maquina'], data['id_insumo'], data['fecha'], data['cantidad_usada'])
         cursor.execute(query, values)
@@ -436,6 +435,7 @@ def registrar_consumo_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/registro-consumo/<int:id>', methods=['DELETE'])
+@login_required
 def eliminar_registro_consumo_route(id):
     try:
         conn = get_db_connection()
@@ -450,12 +450,13 @@ def eliminar_registro_consumo_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/registro-consumo/<int:id>', methods=['PUT'])
+@login_required
 def modificar_registro_consumo_route(id):
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """UPDATE registro_consumo SET id_maquina = %s, id_insumo = %s, 
+        query = """UPDATE registro_consumo SET id_maquina = %s, id_insumo = %s,
                    fecha = %s, cantidad_usada = %s WHERE id = %s"""
         values = (data['id_maquina'], data['id_insumo'], data['fecha'], data['cantidad_usada'], id)
         cursor.execute(query, values)
@@ -467,6 +468,7 @@ def modificar_registro_consumo_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/registro-consumo', methods=['GET'])
+@login_required
 def obtener_registro_consumo_route():
     try:
         conn = get_db_connection()
@@ -481,7 +483,7 @@ def obtener_registro_consumo_route():
 
 # ----------------------------- MAQUINAS ---------------------------------
 @app.route('/api/maquinas', methods=['GET'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def obtener_maquinas_route():
     try:
         conn = get_db_connection()
@@ -495,7 +497,7 @@ def obtener_maquinas_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/maquinas', methods=['POST'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def agregar_maquina_route():
     data = request.get_json()
     try:
@@ -511,7 +513,7 @@ def agregar_maquina_route():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/maquinas/<int:id>', methods=['DELETE'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def eliminar_maquina_route(id):
     try:
         conn = get_db_connection()
@@ -526,7 +528,7 @@ def eliminar_maquina_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/maquinas/<int:id>', methods=['PUT'])
-@admin_required #sacar para realizar pruebas
+@admin_required
 def modificar_maquina_route(id):
     data = request.get_json()
     try:
@@ -543,6 +545,7 @@ def modificar_maquina_route(id):
 
 # ----------------------------- REPORTES ---------------------------------
 @app.route('/api/reportes/mantenimientos-por-tecnico', methods=['GET'])
+@login_required
 def reporte_mantenimientos_por_tecnico():
     try:
         conn = get_db_connection()
@@ -562,13 +565,14 @@ def reporte_mantenimientos_por_tecnico():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/reportes/consumo-por-maquina', methods=['GET'])
+@login_required
 def reporte_consumo_por_maquina():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
             SELECT nombre as maquina, SUM(rc.cantidad_usada) as total_consumo
-            FROM maquinas 
+            FROM maquinas
             LEFT JOIN registro_consumo  ON id = id_maquina
             GROUP BY id, nombre
         """
