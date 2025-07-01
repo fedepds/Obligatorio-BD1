@@ -53,12 +53,7 @@ const peticionAPI = async (endpoint, method = "GET", body = null) => {
 
 // ---------------- USUARIOS ----------------
 
-export const registrarUsuario = (correo, password, es_administrador = false) =>
-  peticionAPI("/api/usuarios", "POST", {
-    correo,
-    password,
-    es_administrador,
-  });
+
 
 export const loginUsuario = async (correo, password) => {
   const respuesta = await peticionAPI("/api/usuarios/login", "POST", { correo, password });
@@ -100,8 +95,8 @@ export const verificarToken = () => {
   }
 };
 
-// El resto de las funciones permanecen igual...
-export const obtenerUsuarios = () => peticionAPI("/api/usuarios");
+
+
 
 // ---------------- CLIENTES ----------------
 export const obtenerClientes = () => peticionAPI("/api/clientes");

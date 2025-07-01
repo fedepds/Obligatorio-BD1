@@ -89,7 +89,7 @@ const handleLogin = async () => {
             <Input
               name="email"
               type="email"
-              placeholder="johndoe@email.com"
+              placeholder="pepe@pepe.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
@@ -100,7 +100,7 @@ const handleLogin = async () => {
             <Input
               name="password"
               type="password"
-              placeholder="password"
+              placeholder="UnaContraseñaSegura123"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
