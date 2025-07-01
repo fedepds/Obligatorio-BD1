@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import mysql.connector
-import jwt
+import jwt as pyjwt
 from dotenv import load_dotenv
 from functools import wraps
 import os
@@ -38,7 +38,7 @@ def token_required(f):
             return jsonify({'error': 'Token no proporcionado'}), 401
 
         try:
-            data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            data = pyjwt.decode(token, SECRET_KEY, algorithms=['HS256'])
             # Añadir información del usuario a la solicitud
             request.usuario = data
         except:
@@ -86,7 +86,7 @@ def login_usuario():
                 'es_administrador': bool(result['es_administrador']),
                 'exp': datetime.utcnow() + timedelta(hours=3)
             }
-            token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+            token = pyjwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
             return jsonify({
                 'token': token,
