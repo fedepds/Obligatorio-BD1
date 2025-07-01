@@ -12,7 +12,11 @@ load_dotenv()
 
 # Configuración de la aplicación Flask
 app = Flask(__name__)
-CORS(app)
+CORS(app,
+     origins=["http://localhost:3000"],  # URL específica del frontend
+     supports_credentials=True,          # Permite credenciales
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 # Función para crear la conexión a la base de datos
 def get_db_connection():
