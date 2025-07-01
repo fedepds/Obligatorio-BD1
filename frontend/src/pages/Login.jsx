@@ -64,7 +64,9 @@ const handleLogin = async () => {
       navigate("/homeUser");
     }
   } catch (err) {
-    setError("Credenciales incorrectas o error de conexión.");
+    // Mensaje de error más descriptivo
+    setError("Error de autenticación: " + (err.message || "Credenciales incorrectas o error de conexión"));
+    console.error("Error de login:", err);
   } finally {
     setLoading(false);
   }
