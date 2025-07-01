@@ -7,6 +7,7 @@ import {
   Container,
   Paper,
   Divider,
+    Box,
 } from "@mui/material";
 import {
   Handyman,
@@ -14,10 +15,20 @@ import {
   Inventory,
   Receipt,
   BarChart,
+  Logout,
 } from "@mui/icons-material";
+  import { cerrarSesion } from "../api";
 
 const HomeUser = () => {
   const navigate = useNavigate();
+
+  const handleCerrarSesion = async () => {
+    try {
+      await cerrarSesion();
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
+  };
 
   return (
     <Container
@@ -40,6 +51,17 @@ const HomeUser = () => {
           background: "linear-gradient(to bottom, #ffffff, #f5f5f5)",
         }}
       >
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handleCerrarSesion}
+          startIcon={<Logout />}
+          size="small"
+        >
+          Cerrar Sesión
+        </Button>
+        </Box>
         <Typography
           variant="h3"
           component="h1"

@@ -1,12 +1,23 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { verificarToken } from '../api';
 
 export const ProtectedRoute = ({ children, requiereAdmin = false }) => {
-  // Ya no verificamos un token, solo verificamos que exista usuario en localStorage
+  // Verificar si el token es válido
+  const tokenValido = verificarToken();
+
+  // Si no hay token válido, redirigir al login
+  if (!tokenValido) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Obtener información del usuario
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
 
-  // Si no hay información de usuario, redirigir al login
+  // Si no hay información de usuario completa, redirigir al login
   if (!usuario || !usuario.correo) {
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('token');
     return <Navigate to="/" replace />;
   }
 
