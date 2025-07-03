@@ -3,9 +3,9 @@ from backend.connection import DatabaseConnection
 
 
 def agregar_insumo(insumo):
-    query = """INSERT INTO insumos (id,nombre, descripcion, tipo, precio_unitario, rut_proveedor) 
-               VALUES (%s, %s, %s, %s, %s, %s)"""
-    values = (insumo.id, insumo.nombre, insumo.descripcion, insumo.tipo, insumo.precio_unitario, insumo.rut_proveedor)
+    query = """INSERT INTO insumos (nombre, descripcion, tipo, precio_unitario, rut_proveedor) 
+               VALUES (%s, %s, %s, %s, %s)"""
+    values = (insumo.nombre, insumo.descripcion, insumo.tipo, insumo.precio_unitario, insumo.rut_proveedor)
 
     with DatabaseConnection() as connection:
         cursor = connection.cursor()

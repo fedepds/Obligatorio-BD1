@@ -2,9 +2,9 @@ from backend.dominio import Maquina
 from backend.connection import DatabaseConnection
 
 def agregar_maquina(maquina):
-    query = """INSERT INTO maquinas (id, modelo, id_cliente, ubicacion_cliente, costo_alquiler_mensual) 
-               VALUES (%s, %s, %s, %s, %s)"""
-    values = (maquina.id, maquina.modelo, maquina.id_cliente, maquina.ubicacion_cliente, maquina.costo_alquiler_mensual)
+    query = """INSERT INTO maquinas (modelo, id_cliente, ubicacion_cliente, costo_alquiler_mensual) 
+               VALUES (%s, %s, %s, %s)"""
+    values = (maquina.modelo, maquina.id_cliente, maquina.ubicacion_cliente, maquina.costo_alquiler_mensual)
     
     with DatabaseConnection() as connection:
         cursor = connection.cursor()
