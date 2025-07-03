@@ -1,16 +1,16 @@
 from backend.connection import DatabaseConnection
-def registrar_usuario(correo,contrasenia,es_administrador): #Función que registra un usuario en la base de datos con su correo y contraseña, me permite la autenticacion de usuario
-    query="""INSERT INTO login (correo,contrasenia,es_administrador) VALUES (%s,%s)"""
-    values=(correo,contrasenia)
+def registrar_usuario(correo,password,es_administrador): #Función que registra un usuario en la base de datos con su correo y contraseña, me permite la autenticacion de usuario
+    query="""INSERT INTO login (correo,password,es_administrador) VALUES (%s,%s)"""
+    values=(correo,password)
     
     with DatabaseConnection() as connection:
         cursor=connection.cursor()
         cursor.execute(query,values)
         connection.commit()
 
-def autenticacion_de_usuario(correo,contrasenia,es_administrador):
-    query="""SELECT * FROM login WHERE correo=%s AND contrasenia=%s"""
-    values=(correo,contrasenia)
+def autenticacion_de_usuario(correo,password,es_administrador):
+    query="""SELECT * FROM login WHERE correo=%s AND password=%s"""
+    values=(correo,password)
     
     with DatabaseConnection() as connection:
         cursor=connection.cursor()
