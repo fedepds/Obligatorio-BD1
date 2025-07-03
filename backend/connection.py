@@ -33,19 +33,19 @@ def get_db_connection(max_retries=3, retry_delay=2):
             )
 
             if connection.is_connected():
-                print(f"✅ Conexión exitosa (intento {attempt + 1})")
+                print(f"Conexión exitosa (intento {attempt + 1})")
                 return connection
 
         except Error as e:
-            print(f"❌ Error en intento {attempt + 1}: {e}")
+            print(f" Error en intento {attempt + 1}: {e}")
             if attempt < max_retries - 1:
                 print(f"Reintentando en {retry_delay} segundos...")
                 time.sleep(retry_delay)
             else:
-                print("❌ Agotados todos los intentos de conexión")
+                print(" Agotados todos los intentos de conexión")
                 raise e
         except Exception as e:
-            print(f"❌ Error inesperado: {e}")
+            print(f" Error inesperado: {e}")
             raise e
 
     return None
@@ -75,14 +75,14 @@ class DatabaseConnection:
             # Si todo salió bien, hacer commit
             if self.connection:
                 self.connection.commit()
-                print("✅ Commit realizado exitosamente")
+                print(" Commit realizado exitosamente")
 
         # Cerrar cursor y conexión
         if self.cursor:
             self.cursor.close()
         if self.connection and self.connection.is_connected():
             self.connection.close()
-            print("🔐 Conexión cerrada")
+            print(" Conexión cerrada")
 
 
 def test_connection():
@@ -94,24 +94,24 @@ def test_connection():
             # Probar consulta simple
             cursor.execute("SELECT VERSION()")
             version = cursor.fetchone()
-            print(f"✅ Versión de MySQL: {version['VERSION()']}")
+            print(f" Versión de MySQL: {version['VERSION()']}")
 
             # Mostrar tablas disponibles
             cursor.execute("SHOW TABLES")
             tables = cursor.fetchall()
             if tables:
-                print("📋 Tablas disponibles:")
+                print(" Tablas disponibles:")
                 for table in tables:
                     table_name = list(table.values())[0]
                     print(f"  - {table_name}")
             else:
-                print("⚠️  No se encontraron tablas en la base de datos")
+                print("  No se encontraron tablas en la base de datos")
 
     except Error as e:
-        print(f"❌ Error al probar la conexión: {e}")
+        print(f" Error al probar la conexión: {e}")
         return False
     except Exception as e:
-        print(f"❌ Error inesperado: {e}")
+        print(f" Error inesperado: {e}")
         return False
 
     return True
@@ -119,17 +119,17 @@ def test_connection():
 
 # Prueba rápida de conexión
 if __name__ == "__main__":
-    print("🔍 Iniciando prueba de conexión...")
+    print(" Iniciando prueba de conexión...")
     print("-" * 50)
 
     success = test_connection()
 
     print("-" * 50)
     if success:
-        print("🎉 ¡Prueba de conexión completada exitosamente!")
+        print(" ¡Prueba de conexión completada exitosamente!")
     else:
-        print("💥 La prueba de conexión falló")
-        print("\n🔧 Posibles soluciones:")
+        print(" La prueba de conexión falló")
+        print("\n Posibles soluciones:")
         print("1. Verificar que Docker esté ejecutándose")
         print("2. Ejecutar: docker-compose up -d")
         print("3. Verificar los puertos en docker-compose.yml y .env")

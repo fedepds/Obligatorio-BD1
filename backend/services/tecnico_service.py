@@ -2,10 +2,10 @@ from backend.dominio import Tecnico
 from backend.connection import DatabaseConnection
 
 def agregar_tecnico(tecnico):
-    query = """INSERT INTO tecnicos (id, nombre, contacto) 
-               VALUES (%s, %s, %s)"""
-    values = (tecnico.id, tecnico.nombre, tecnico.contacto)
-    
+    query = """INSERT INTO tecnicos (nombre, contacto) 
+               VALUES (%s, %s)"""
+    values = (tecnico.nombre, tecnico.contacto)
+
     with DatabaseConnection() as connection:
         cursor = connection.cursor()
         cursor.execute(query, values)
