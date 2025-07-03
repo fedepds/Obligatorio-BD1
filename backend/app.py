@@ -104,7 +104,32 @@ def login_usuario():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-
+@app.route('/api/usuarios/registro', methods=['POST'])
+def registrar_usuario():
+    data = request.get_json()
+    correo = data.get('correo')
+    password = data.get('password')
+    es_administrador = data.get('es_administrador', False)
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Verificar si el usuario ya existe
+        cursor.execute("SELECT correo FROM login WHERE correo = %s", (correo,))
+        if cursor.fetchone():
+            return jsonify({'error': 'El usuario ya existe'}), 400
+        
+        # Insertar nuevo usuario
+        query = "INSERT INTO login (correo, password, es_administrador) VALUES (%s, %s, %s)"
+        cursor.execute(query, (correo, password, es_administrador))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({'message': 'Usuario registrado con éxito'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 
 # ----------------------------- CLIENTES ---------------------------------
@@ -552,10 +577,11 @@ def reporte_mantenimientos_por_tecnico():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
-            SELECT nombre, contacto, COUNT(id) as total_mantenimientos
+            SELECT t.nombre, t.contacto, COUNT(m.id) as total_mantenimientos
             FROM tecnicos t
-            LEFT JOIN mantenimientos ON id = tecnico_id
-            GROUP BY id, nombre, contacto
+            LEFT JOIN mantenimientos m ON t.id = m.ci_tecnico
+            GROUP BY t.id, t.nombre, t.contacto
+            ORDER BY COUNT(m.id) DESC
         """
         cursor.execute(query)
         reportes = cursor.fetchall()
@@ -575,6 +601,77 @@ def reporte_consumo_por_maquina():
             FROM maquinas 
             LEFT JOIN registro_consumo  ON id = id_maquina
             GROUP BY id, nombre
+        """
+        cursor.execute(query)
+        reportes = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(reportes), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/reportes/total-mensual-por-cliente', methods=['GET'])
+def reporte_total_mensual_por_cliente():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = """
+        SELECT 
+            clientes.id,
+            clientes.nombre,
+            SUM(maquinas.costo_alquiler_mensual) + SUM(registro_consumo.cantidad_usada * insumos.precio_unitario) as total_mensual
+        FROM clientes
+        LEFT JOIN maquinas ON clientes.id = maquinas.id_cliente
+        LEFT JOIN registro_consumo ON registro_consumo.id_maquina = maquinas.id
+        LEFT JOIN insumos ON registro_consumo.id_insumo = insumos.id
+        GROUP BY clientes.id, clientes.nombre
+        """
+        cursor.execute(query)
+        reportes = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(reportes), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/reportes/insumos-mayor-consumo', methods=['GET'])
+def reporte_insumos_mayor_consumo():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = """
+        SELECT 
+            insumos.id,
+            insumos.nombre,
+            SUM(registro_consumo.cantidad_usada) as total_consumido,
+            SUM(registro_consumo.cantidad_usada * insumos.precio_unitario) as valor_total
+        FROM insumos
+        INNER JOIN registro_consumo ON insumos.id = registro_consumo.id_insumo
+        GROUP BY insumos.id, insumos.nombre
+        ORDER BY SUM(registro_consumo.cantidad_usada) DESC
+        """
+        cursor.execute(query)
+        reportes = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(reportes), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/reportes/clientes-mas-maquinas', methods=['GET'])
+def reporte_clientes_mas_maquinas():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = """
+        SELECT 
+            clientes.id,
+            clientes.nombre,
+            COUNT(maquinas.id) as total_maquinas
+        FROM clientes
+        INNER JOIN maquinas ON clientes.id = maquinas.id_cliente
+        GROUP BY clientes.id, clientes.nombre
+        ORDER BY COUNT(maquinas.id) DESC
         """
         cursor.execute(query)
         reportes = cursor.fetchall()
