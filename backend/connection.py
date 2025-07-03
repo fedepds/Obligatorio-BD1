@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 # Carga las variables del archivo .env
 load_dotenv()
 
-def get_db_connection():
+def DatabaseConnection():
     connection = mysql.connector.connect(
         host=os.getenv('DB_HOST'),
         port=os.getenv('DB_PORT'),
@@ -18,7 +18,7 @@ def get_db_connection():
 # Prueba rápida de conexión
 if __name__ == "__main__":
     try:
-        conn = get_db_connection()
+        conn = DatabaseConnection()
         print("¡Conexión exitosa a la base de datos MySQL!")
         conn.close()
     except Exception as e:
