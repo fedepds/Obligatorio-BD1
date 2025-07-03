@@ -113,8 +113,8 @@ export const eliminarProveedor = (id) => peticionAPI(`/api/proveedores/${id}`, "
 // ---------------- INSUMOS ----------------
 export const obtenerInsumos = () => peticionAPI("/api/insumos");
 export const agregarInsumo = (insumo) => peticionAPI("/api/insumos", "POST", insumo);
-export const modificarInsumo = (codigo, nuevosDatos) => peticionAPI(`/api/insumos/${codigo}`, "PUT", nuevosDatos);
-export const eliminarInsumo = (codigo) => peticionAPI(`/api/insumos/${codigo}`, "DELETE");
+export const modificarInsumo = (id, nuevosDatos) => peticionAPI(`/api/insumos/${id}`, "PUT", nuevosDatos);
+export const eliminarInsumo = (id) => peticionAPI(`/api/insumos/${id}`, "DELETE");
 
 // ---------------- TÉCNICOS ----------------
 export const obtenerTecnicos = () => peticionAPI("/api/tecnicos");

@@ -104,7 +104,32 @@ def login_usuario():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-
+@app.route('/api/usuarios/registro', methods=['POST'])
+def registrar_usuario():
+    data = request.get_json()
+    correo = data.get('correo')
+    password = data.get('password')
+    es_administrador = data.get('es_administrador', False)
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Verificar si el usuario ya existe
+        cursor.execute("SELECT correo FROM login WHERE correo = %s", (correo,))
+        if cursor.fetchone():
+            return jsonify({'error': 'El usuario ya existe'}), 400
+        
+        # Insertar nuevo usuario
+        query = "INSERT INTO login (correo, password, es_administrador) VALUES (%s, %s, %s)"
+        cursor.execute(query, (correo, password, es_administrador))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({'message': 'Usuario registrado con éxito'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 
 # ----------------------------- CLIENTES ---------------------------------
@@ -114,9 +139,9 @@ def agregar_cliente_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """INSERT INTO clientes (nombre, direccion, telefono, correo)
-                   VALUES (%s, %s, %s, %s)"""
-        values = (data['nombre'], data['direccion'], data['telefono'], data['correo'])
+        query = """INSERT INTO clientes (rut, nombre, direccion, fecha_nacimiento, telefono, correo)
+                   VALUES (%s, %s, %s, %s, %s, %s)"""
+        values = (data['rut'], data['nombre'], data['direccion'], data['fecha_nacimiento'], data['telefono'], data['correo'])
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -125,13 +150,13 @@ def agregar_cliente_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/clientes/<ci>', methods=['DELETE'])
-def eliminar_cliente_route(ci):
+@app.route('/api/clientes/<int:rut>', methods=['DELETE'])
+def eliminar_cliente_route(rut):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "DELETE FROM clientes WHERE ci = %s"
-        cursor.execute(query, (ci,))
+        query = "DELETE FROM clientes WHERE rut = %s"
+        cursor.execute(query, (rut,))
         conn.commit()
         cursor.close()
         conn.close()
@@ -152,17 +177,15 @@ def obtener_clientes_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/clientes/<ci>', methods=['PUT'])
-def modificar_cliente_route(ci):
+@app.route('/api/clientes/<int:rut>', methods=['PUT'])
+def modificar_cliente_route(rut):
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """UPDATE clientes SET nombre = %s, apellido = %s, direccion = %s, 
-                   fecha_nacimiento = %s, telefono = %s, correo_electronico = %s 
-                   WHERE ci = %s"""
-        values = (data['nombre'], data['apellido'], data['direccion'], 
-                 data['fecha_nacimiento'], data['telefono'], data['correo_electronico'], ci)
+        query = """UPDATE clientes SET nombre = %s, direccion = %s, fecha_nacimiento = %s, telefono = %s, correo = %s 
+                   WHERE rut = %s"""
+        values = (data['nombre'], data['direccion'], data['fecha_nacimiento'], data['telefono'], data['correo'], rut)
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -179,8 +202,8 @@ def agregar_proveedor_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "INSERT INTO proveedores (id, nombre, contacto) VALUES (%s, %s, %s)"
-        cursor.execute(query, (data['id'], data['nombre'], data['contacto']))
+        query = "INSERT INTO proveedores (rut, nombre, contacto) VALUES (%s, %s, %s)"
+        cursor.execute(query, (data['rut'], data['nombre'], data['contacto']))
         conn.commit()
         cursor.close()
         conn.close()
@@ -188,12 +211,25 @@ def agregar_proveedor_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/proveedores/<id>', methods=['DELETE'])
+@app.route('/api/proveedores/<int:id>', methods=['DELETE'])
 @admin_required #sacar para realizar pruebas
 def eliminar_proveedor_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Verificar si el proveedor tiene insumos asociados
+        cursor.execute("SELECT COUNT(*) FROM insumos WHERE rut_proveedor = (SELECT rut FROM proveedores WHERE id = %s)", (id,))
+        count = cursor.fetchone()[0]
+        
+        if count > 0:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'error': f'No se puede eliminar el proveedor porque tiene {count} insumo(s) asociado(s). Elimine primero los insumos o reasígnelos a otro proveedor.'
+            }), 400
+        
+        # Si no tiene insumos, proceder con la eliminación
         query = "DELETE FROM proveedores WHERE id = %s"
         cursor.execute(query, (id,))
         conn.commit()
@@ -203,7 +239,7 @@ def eliminar_proveedor_route(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/proveedores/<id>', methods=['PUT'])
+@app.route('/api/proveedores/<int:id>', methods=['PUT'])
 @admin_required #sacar para realizar pruebas
 def modificar_proveedor_route(id):
     data = request.get_json()
@@ -240,10 +276,9 @@ def agregar_insumo_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """INSERT INTO insumos (codigo, nombre, descripcion, cantidad, precio, proveedor_id) 
-                   VALUES (%s, %s, %s, %s, %s, %s)"""
-        values = (data['codigo'], data['nombre'], data['descripcion'], 
-                 data['cantidad'], data['precio'], data['proveedor_id'])
+        query = """INSERT INTO insumos (nombre, descripcion, tipo, precio_unitario, rut_proveedor) 
+                   VALUES (%s, %s, %s, %s, %s)"""
+        values = (data['nombre'], data['descripcion'], data['tipo'], data['precio_unitario'], data['rut_proveedor'])
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -252,13 +287,26 @@ def agregar_insumo_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/insumos/<codigo>', methods=['DELETE'])
-def eliminar_insumo_route(codigo):
+@app.route('/api/insumos/<int:id>', methods=['DELETE'])
+def eliminar_insumo_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "DELETE FROM insumos WHERE codigo = %s"
-        cursor.execute(query, (codigo,))
+        
+        # Verificar si el insumo está siendo usado en registro_consumo
+        cursor.execute("SELECT COUNT(*) FROM registro_consumo WHERE id_insumo = %s", (id,))
+        count = cursor.fetchone()[0]
+        
+        if count > 0:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'error': f'No se puede eliminar el insumo porque está siendo usado en {count} registro(s) de consumo. Elimine primero los registros de consumo asociados.'
+            }), 400
+        
+        # Si no está siendo usado, proceder con la eliminación
+        query = "DELETE FROM insumos WHERE id = %s"
+        cursor.execute(query, (id,))
         conn.commit()
         cursor.close()
         conn.close()
@@ -266,16 +314,16 @@ def eliminar_insumo_route(codigo):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/insumos/<codigo>', methods=['PUT'])
-def modificar_insumo_route(codigo):
+@app.route('/api/insumos/<int:id>', methods=['PUT'])
+def modificar_insumo_route(id):
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """UPDATE insumos SET nombre = %s, descripcion = %s, cantidad = %s, 
-                   precio = %s, proveedor_id = %s WHERE codigo = %s"""
-        values = (data['nombre'], data['descripcion'], data['cantidad'], 
-                 data['precio'], data['proveedor_id'], codigo)
+        query = """UPDATE insumos SET nombre = %s, descripcion = %s, tipo = %s, 
+                   precio_unitario = %s, rut_proveedor = %s WHERE id = %s"""
+        values = (data['nombre'], data['descripcion'], data['tipo'], 
+                 data['precio_unitario'], data['rut_proveedor'], id)
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -305,8 +353,8 @@ def agregar_tecnico_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "INSERT INTO tecnicos (id, nombre, contacto) VALUES (%s, %s, %s)"
-        cursor.execute(query, (data['id'], data['nombre'], data['contacto']))
+        query = "INSERT INTO tecnicos (nombre, contacto) VALUES (%s, %s)"
+        cursor.execute(query, (data['nombre'], data['contacto']))
         conn.commit()
         cursor.close()
         conn.close()
@@ -314,12 +362,25 @@ def agregar_tecnico_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/tecnicos/<id>', methods=['DELETE'])
+@app.route('/api/tecnicos/<int:id>', methods=['DELETE'])
 @admin_required #sacar para realizar pruebas
 def eliminar_tecnico_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Verificar si el técnico tiene mantenimientos asociados
+        cursor.execute("SELECT COUNT(*) FROM mantenimientos WHERE id_tecnico = %s", (id,))
+        count = cursor.fetchone()[0]
+        
+        if count > 0:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'error': f'No se puede eliminar el técnico porque tiene {count} mantenimiento(s) asociado(s). Elimine primero los mantenimientos o reasígnelos a otro técnico.'
+            }), 400
+        
+        # Si no tiene mantenimientos, proceder con la eliminación
         query = "DELETE FROM tecnicos WHERE id = %s"
         cursor.execute(query, (id,))
         conn.commit()
@@ -329,7 +390,7 @@ def eliminar_tecnico_route(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/tecnicos/<id>', methods=['PUT'])
+@app.route('/api/tecnicos/<int:id>', methods=['PUT'])
 @admin_required #sacar para realizar pruebas
 def modificar_tecnico_route(id):
     data = request.get_json()
@@ -346,7 +407,7 @@ def modificar_tecnico_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos', methods=['GET'])
-@admin_required #sacar para realizar pruebas
+#@admin_required #sacar para realizar pruebas
 def obtener_tecnicos_route():
     try:
         conn = get_db_connection()
@@ -366,9 +427,9 @@ def agregar_mantenimiento_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """INSERT INTO mantenimientos (fecha, descripcion, tecnico_id, maquina_id) 
-                   VALUES (%s, %s, %s, %s)"""
-        values = (data['fecha'], data['descripcion'], data['tecnico_id'], data['maquina_id'])
+        query = """INSERT INTO mantenimientos (id_maquina, id_tecnico, tipo, fecha, observaciones) 
+                   VALUES (%s, %s, %s, %s, %s)"""
+        values = (data['id_maquina'], data['id_tecnico'], data['tipo'], data['fecha'], data['observaciones'])
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -397,9 +458,8 @@ def modificar_mantenimiento_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """UPDATE mantenimientos SET fecha = %s, descripcion = %s, 
-                   tecnico_id = %s, maquina_id = %s WHERE id = %s"""
-        values = (data['fecha'], data['descripcion'], data['tecnico_id'], data['maquina_id'], id)
+        query = """UPDATE mantenimientos SET id_maquina = %s, id_tecnico = %s, tipo = %s, fecha = %s, observaciones = %s WHERE id = %s"""
+        values = (data['id_maquina'], data['id_tecnico'], data['tipo'], data['fecha'], data['observaciones'], id)
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -428,6 +488,22 @@ def registrar_consumo_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Validar que la máquina existe
+        cursor.execute("SELECT id FROM maquinas WHERE id = %s", (data['id_maquina'],))
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({'error': f'La máquina con ID {data["id_maquina"]} no existe'}), 400
+        
+        # Validar que el insumo existe
+        cursor.execute("SELECT id FROM insumos WHERE id = %s", (data['id_insumo'],))
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({'error': f'El insumo con ID {data["id_insumo"]} no existe'}), 400
+        
+        # Si todo está bien, proceder con la inserción
         query = """INSERT INTO registro_consumo (id_maquina, id_insumo, fecha, cantidad_usada) 
                    VALUES (%s, %s, %s, %s)"""
         values = (data['id_maquina'], data['id_insumo'], data['fecha'], data['cantidad_usada'])
@@ -505,8 +581,8 @@ def agregar_maquina_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "INSERT INTO maquinas (nombre, descripcion, estado) VALUES (%s, %s, %s)"
-        cursor.execute(query, (data['nombre'], data['descripcion'], data['estado']))
+        query = "INSERT INTO maquinas (modelo, id_cliente, ubicacion_cliente, costo_alquiler_mensual) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (data['modelo'], data['id_cliente'], data['ubicacion_cliente'], data['costo_alquiler_mensual']))
         conn.commit()
         cursor.close()
         conn.close()
@@ -536,8 +612,8 @@ def modificar_maquina_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "UPDATE maquinas SET nombre = %s, descripcion = %s, estado = %s WHERE id = %s"
-        cursor.execute(query, (data['nombre'], data['descripcion'], data['estado'], id))
+        query = "UPDATE maquinas SET modelo = %s, id_cliente = %s, ubicacion_cliente = %s, costo_alquiler_mensual = %s WHERE id = %s"
+        cursor.execute(query, (data['modelo'], data['id_cliente'], data['ubicacion_cliente'], data['costo_alquiler_mensual'], id))
         conn.commit()
         cursor.close()
         conn.close()
@@ -552,10 +628,11 @@ def reporte_mantenimientos_por_tecnico():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
-            SELECT nombre, contacto, COUNT(id) as total_mantenimientos
-            FROM tecnicos t
-            LEFT JOIN mantenimientos ON id = tecnico_id
-            GROUP BY id, nombre, contacto
+            SELECT tecnicos.nombre, tecnicos.contacto, COUNT(mantenimientos.id) as total_mantenimientos
+            FROM tecnicos
+            LEFT JOIN mantenimientos ON tecnicos.id = mantenimientos.id_tecnico
+            GROUP BY tecnicos.id, tecnicos.nombre, tecnicos.contacto
+            ORDER BY COUNT(mantenimientos.id) DESC
         """
         cursor.execute(query)
         reportes = cursor.fetchall()
@@ -571,10 +648,81 @@ def reporte_consumo_por_maquina():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
-            SELECT nombre as maquina, SUM(rc.cantidad_usada) as total_consumo
-            FROM maquinas 
-            LEFT JOIN registro_consumo  ON id = id_maquina
-            GROUP BY id, nombre
+            SELECT maquinas.modelo as maquina, SUM(registro_consumo.cantidad_usada) as total_consumo
+            FROM maquinas
+            LEFT JOIN registro_consumo ON maquinas.id = registro_consumo.id_maquina
+            GROUP BY maquinas.id, maquinas.modelo
+        """
+        cursor.execute(query)
+        reportes = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(reportes), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/reportes/total-mensual-por-cliente', methods=['GET'])
+def reporte_total_mensual_por_cliente():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = """
+        SELECT 
+            clientes.id,
+            clientes.nombre,
+            COALESCE(SUM(maquinas.costo_alquiler_mensual), 0) + COALESCE(SUM(registro_consumo.cantidad_usada * insumos.precio_unitario), 0) as total_mensual
+        FROM clientes
+        LEFT JOIN maquinas ON clientes.id = maquinas.id_cliente
+        LEFT JOIN registro_consumo ON registro_consumo.id_maquina = maquinas.id
+        LEFT JOIN insumos ON registro_consumo.id_insumo = insumos.id
+        GROUP BY clientes.id, clientes.nombre
+        """
+        cursor.execute(query)
+        reportes = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(reportes), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/reportes/insumos-mayor-consumo', methods=['GET'])
+def reporte_insumos_mayor_consumo():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = """
+        SELECT 
+            insumos.id,
+            insumos.nombre,
+            SUM(registro_consumo.cantidad_usada) as total_consumido,
+            SUM(registro_consumo.cantidad_usada * insumos.precio_unitario) as valor_total
+        FROM insumos
+        INNER JOIN registro_consumo ON insumos.id = registro_consumo.id_insumo
+        GROUP BY insumos.id, insumos.nombre
+        ORDER BY SUM(registro_consumo.cantidad_usada) DESC
+        """
+        cursor.execute(query)
+        reportes = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(reportes), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/reportes/clientes-mas-maquinas', methods=['GET'])
+def reporte_clientes_mas_maquinas():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = """
+        SELECT 
+            clientes.id,
+            clientes.nombre,
+            COUNT(maquinas.id) as total_maquinas
+        FROM clientes
+        INNER JOIN maquinas ON clientes.id = maquinas.id_cliente
+        GROUP BY clientes.id, clientes.nombre
+        ORDER BY COUNT(maquinas.id) DESC
         """
         cursor.execute(query)
         reportes = cursor.fetchall()
