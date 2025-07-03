@@ -1,4 +1,6 @@
 USE cafes_marloy;
+# Tener cuidado ya que el docker-compose -d no borra la base, hay que hacer un docker-compose down -v
+# Y luego el docker-compose up -d.
 
 -- TABLA LOGIN
 CREATE TABLE IF NOT EXISTS login (

@@ -342,6 +342,19 @@ def eliminar_tecnico_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Verificar si el técnico tiene mantenimientos asociados
+        cursor.execute("SELECT COUNT(*) FROM mantenimientos WHERE id_tecnico = %s", (id,))
+        count = cursor.fetchone()[0]
+        
+        if count > 0:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'error': f'No se puede eliminar el técnico porque tiene {count} mantenimiento(s) asociado(s). Elimine primero los mantenimientos o reasígnelos a otro técnico.'
+            }), 400
+        
+        # Si no tiene mantenimientos, proceder con la eliminación
         query = "DELETE FROM tecnicos WHERE id = %s"
         cursor.execute(query, (id,))
         conn.commit()
