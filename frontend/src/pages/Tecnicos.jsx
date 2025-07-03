@@ -37,8 +37,7 @@ const Tecnicos = () => {
   const [tecnicoActual, setTecnicoActual] = useState({
     id: "",
     nombre: "",
-    especialidad: "",
-    telefono: "",
+    contacto: "",
   });
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -82,8 +81,7 @@ const Tecnicos = () => {
     setTecnicoActual({
       id: "",
       nombre: "",
-      especialidad: "",
-      telefono: "",
+      contacto: "",
     });
     setModalMode("agregar");
     setShowModal(true);
@@ -224,12 +222,7 @@ const Tecnicos = () => {
                       </Typography>
 
                       <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <Build fontSize="small" />
-                        <strong>Especialidad:</strong> {tecnico.especialidad}
-                      </Typography>
-
-                      <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <strong>Teléfono:</strong> {tecnico.telefono}
+                        <strong>Contacto:</strong> {tecnico.contacto}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -280,21 +273,9 @@ const Tecnicos = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
-                    label="Especialidad"
-                    name="especialidad"
-                    value={tecnicoActual.especialidad}
-                    onChange={handleChange}
-                    required
-                    fullWidth
-                    variant="outlined"
-                    placeholder="Ej: Electricista"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
                     label="Teléfono"
-                    name="telefono"
-                    value={tecnicoActual.telefono}
+                    name="contacto"
+                    value={tecnicoActual.contacto}
                     onChange={handleChange}
                     required
                     fullWidth
