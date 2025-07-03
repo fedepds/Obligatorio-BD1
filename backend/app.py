@@ -327,7 +327,7 @@ def agregar_tecnico_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "INSERT INTO tecnicos (id, nombre, contacto) VALUES (%s, %s, %s)"
+        query = "INSERT INTO tecnicos (id, nombre, telefono) VALUES (%s, %s, %s)"
         cursor.execute(query, (data['id'], data['nombre'], data['contacto']))
         conn.commit()
         cursor.close()
@@ -358,8 +358,8 @@ def modificar_tecnico_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "UPDATE tecnicos SET nombre = %s, contacto = %s WHERE id = %s"
-        cursor.execute(query, (data['nombre'], data['contacto'], id))
+        query = "UPDATE tecnicos SET nombre = %s, telefono = %s WHERE id = %s"
+        cursor.execute(query, (data['nombre'], data['telefono'], id))
         conn.commit()
         cursor.close()
         conn.close()

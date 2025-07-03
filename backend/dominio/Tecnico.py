@@ -1,8 +1,8 @@
 class Tecnico:
-    def __init__(self, id, nombre, contacto):
+    def __init__(self, id, nombre, telefono):
         self.id = id
         self.nombre = nombre
-        self.contacto = contacto
+        self.telefono = telefono
 
     def __repr__(self):
-        return f"Tecnico(id={self.id}, nombre={self.nombre}, contacto={self.contacto})"
+        return f"Tecnico(id={self.id}, nombre={self.nombre}, telefono={self.telefono})"

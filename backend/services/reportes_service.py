@@ -47,7 +47,7 @@ def obtener_tecnicos_con_mas_mantenimientos():
         tecnico.id,
         tecnico.nombre,
         COUNT(mantenimientos.id_maquina)
-    FROM tecnico
+    FROM tecnicos
     INNER JOIN mantenimientos ON tecnico.id = mantenimientos.ci_tecnico
     GROUP BY tecnico.id, tecnico.nombre
     ORDER BY COUNT(mantenimientos.id_maquina) DESC
