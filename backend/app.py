@@ -217,6 +217,19 @@ def eliminar_proveedor_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Verificar si el proveedor tiene insumos asociados
+        cursor.execute("SELECT COUNT(*) FROM insumos WHERE rut_proveedor = (SELECT rut FROM proveedores WHERE id = %s)", (id,))
+        count = cursor.fetchone()[0]
+        
+        if count > 0:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'error': f'No se puede eliminar el proveedor porque tiene {count} insumo(s) asociado(s). Elimine primero los insumos o reasígnelos a otro proveedor.'
+            }), 400
+        
+        # Si no tiene insumos, proceder con la eliminación
         query = "DELETE FROM proveedores WHERE id = %s"
         cursor.execute(query, (id,))
         conn.commit()
@@ -279,6 +292,19 @@ def eliminar_insumo_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Verificar si el insumo está siendo usado en registro_consumo
+        cursor.execute("SELECT COUNT(*) FROM registro_consumo WHERE id_insumo = %s", (id,))
+        count = cursor.fetchone()[0]
+        
+        if count > 0:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                'error': f'No se puede eliminar el insumo porque está siendo usado en {count} registro(s) de consumo. Elimine primero los registros de consumo asociados.'
+            }), 400
+        
+        # Si no está siendo usado, proceder con la eliminación
         query = "DELETE FROM insumos WHERE id = %s"
         cursor.execute(query, (id,))
         conn.commit()
@@ -462,6 +488,22 @@ def registrar_consumo_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Validar que la máquina existe
+        cursor.execute("SELECT id FROM maquinas WHERE id = %s", (data['id_maquina'],))
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({'error': f'La máquina con ID {data["id_maquina"]} no existe'}), 400
+        
+        # Validar que el insumo existe
+        cursor.execute("SELECT id FROM insumos WHERE id = %s", (data['id_insumo'],))
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({'error': f'El insumo con ID {data["id_insumo"]} no existe'}), 400
+        
+        # Si todo está bien, proceder con la inserción
         query = """INSERT INTO registro_consumo (id_maquina, id_insumo, fecha, cantidad_usada) 
                    VALUES (%s, %s, %s, %s)"""
         values = (data['id_maquina'], data['id_insumo'], data['fecha'], data['cantidad_usada'])
