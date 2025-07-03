@@ -139,9 +139,9 @@ def agregar_cliente_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """INSERT INTO clientes (nombre, direccion, telefono, correo)
-                   VALUES (%s, %s, %s, %s)"""
-        values = (data['nombre'], data['direccion'], data['telefono'], data['correo'])
+        query = """INSERT INTO clientes (rut, nombre, direccion, fecha_nacimiento, telefono, correo)
+                   VALUES (%s, %s, %s, %s, %s, %s)"""
+        values = (data['rut'], data['nombre'], data['direccion'], data['fecha_nacimiento'], data['telefono'], data['correo'])
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -150,13 +150,13 @@ def agregar_cliente_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/clientes/<ci>', methods=['DELETE'])
-def eliminar_cliente_route(ci):
+@app.route('/api/clientes/<int:rut>', methods=['DELETE'])
+def eliminar_cliente_route(rut):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "DELETE FROM clientes WHERE ci = %s"
-        cursor.execute(query, (ci,))
+        query = "DELETE FROM clientes WHERE rut = %s"
+        cursor.execute(query, (rut,))
         conn.commit()
         cursor.close()
         conn.close()
@@ -177,17 +177,15 @@ def obtener_clientes_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/clientes/<ci>', methods=['PUT'])
-def modificar_cliente_route(ci):
+@app.route('/api/clientes/<int:rut>', methods=['PUT'])
+def modificar_cliente_route(rut):
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """UPDATE clientes SET nombre = %s, apellido = %s, direccion = %s, 
-                   fecha_nacimiento = %s, telefono = %s, correo_electronico = %s 
-                   WHERE ci = %s"""
-        values = (data['nombre'], data['apellido'], data['direccion'], 
-                 data['fecha_nacimiento'], data['telefono'], data['correo_electronico'], ci)
+        query = """UPDATE clientes SET nombre = %s, direccion = %s, fecha_nacimiento = %s, telefono = %s, correo = %s 
+                   WHERE rut = %s"""
+        values = (data['nombre'], data['direccion'], data['fecha_nacimiento'], data['telefono'], data['correo'], rut)
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -204,8 +202,8 @@ def agregar_proveedor_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "INSERT INTO proveedores (id, nombre, contacto) VALUES (%s, %s, %s)"
-        cursor.execute(query, (data['id'], data['nombre'], data['contacto']))
+        query = "INSERT INTO proveedores (rut, nombre, contacto) VALUES (%s, %s, %s)"
+        cursor.execute(query, (data['rut'], data['nombre'], data['contacto']))
         conn.commit()
         cursor.close()
         conn.close()
@@ -265,10 +263,9 @@ def agregar_insumo_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """INSERT INTO insumos (codigo, nombre, descripcion, cantidad, precio, proveedor_id) 
-                   VALUES (%s, %s, %s, %s, %s, %s)"""
-        values = (data['codigo'], data['nombre'], data['descripcion'], 
-                 data['cantidad'], data['precio'], data['proveedor_id'])
+        query = """INSERT INTO insumos (nombre, descripcion, tipo, precio_unitario, rut_proveedor) 
+                   VALUES (%s, %s, %s, %s, %s)"""
+        values = (data['nombre'], data['descripcion'], data['tipo'], data['precio_unitario'], data['rut_proveedor'])
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -277,13 +274,13 @@ def agregar_insumo_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/insumos/<codigo>', methods=['DELETE'])
-def eliminar_insumo_route(codigo):
+@app.route('/api/insumos/<int:id>', methods=['DELETE'])
+def eliminar_insumo_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "DELETE FROM insumos WHERE codigo = %s"
-        cursor.execute(query, (codigo,))
+        query = "DELETE FROM insumos WHERE id = %s"
+        cursor.execute(query, (id,))
         conn.commit()
         cursor.close()
         conn.close()
@@ -391,9 +388,9 @@ def agregar_mantenimiento_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """INSERT INTO mantenimientos (fecha, descripcion, tecnico_id, maquina_id) 
-                   VALUES (%s, %s, %s, %s)"""
-        values = (data['fecha'], data['descripcion'], data['tecnico_id'], data['maquina_id'])
+        query = """INSERT INTO mantenimientos (id_maquina, id_tecnico, tipo, fecha, observaciones) 
+                   VALUES (%s, %s, %s, %s, %s)"""
+        values = (data['id_maquina'], data['id_tecnico'], data['tipo'], data['fecha'], data['observaciones'])
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -422,9 +419,8 @@ def modificar_mantenimiento_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """UPDATE mantenimientos SET fecha = %s, descripcion = %s, 
-                   tecnico_id = %s, maquina_id = %s WHERE id = %s"""
-        values = (data['fecha'], data['descripcion'], data['tecnico_id'], data['maquina_id'], id)
+        query = """UPDATE mantenimientos SET id_maquina = %s, id_tecnico = %s, tipo = %s, fecha = %s, observaciones = %s WHERE id = %s"""
+        values = (data['id_maquina'], data['id_tecnico'], data['tipo'], data['fecha'], data['observaciones'], id)
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -530,8 +526,8 @@ def agregar_maquina_route():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "INSERT INTO maquinas (nombre, descripcion, estado) VALUES (%s, %s, %s)"
-        cursor.execute(query, (data['nombre'], data['descripcion'], data['estado']))
+        query = "INSERT INTO maquinas (modelo, id_cliente, ubicacion_cliente, costo_alquiler_mensual) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (data['modelo'], data['id_cliente'], data['ubicacion_cliente'], data['costo_alquiler_mensual']))
         conn.commit()
         cursor.close()
         conn.close()
@@ -561,8 +557,8 @@ def modificar_maquina_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "UPDATE maquinas SET nombre = %s, descripcion = %s, estado = %s WHERE id = %s"
-        cursor.execute(query, (data['nombre'], data['descripcion'], data['estado'], id))
+        query = "UPDATE maquinas SET modelo = %s, id_cliente = %s, ubicacion_cliente = %s, costo_alquiler_mensual = %s WHERE id = %s"
+        cursor.execute(query, (data['modelo'], data['id_cliente'], data['ubicacion_cliente'], data['costo_alquiler_mensual'], id))
         conn.commit()
         cursor.close()
         conn.close()
@@ -577,11 +573,11 @@ def reporte_mantenimientos_por_tecnico():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
-            SELECT t.nombre, t.contacto, COUNT(m.id) as total_mantenimientos
-            FROM tecnicos t
-            LEFT JOIN mantenimientos m ON t.id = m.ci_tecnico
-            GROUP BY t.id, t.nombre, t.contacto
-            ORDER BY COUNT(m.id) DESC
+            SELECT tecnicos.nombre, tecnicos.contacto, COUNT(mantenimientos.id) as total_mantenimientos
+            FROM tecnicos
+            LEFT JOIN mantenimientos ON tecnicos.id = mantenimientos.id_tecnico
+            GROUP BY tecnicos.id, tecnicos.nombre, tecnicos.contacto
+            ORDER BY COUNT(mantenimientos.id) DESC
         """
         cursor.execute(query)
         reportes = cursor.fetchall()
@@ -597,10 +593,10 @@ def reporte_consumo_por_maquina():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
-            SELECT nombre as maquina, SUM(rc.cantidad_usada) as total_consumo
-            FROM maquinas 
-            LEFT JOIN registro_consumo  ON id = id_maquina
-            GROUP BY id, nombre
+            SELECT maquinas.modelo as maquina, SUM(registro_consumo.cantidad_usada) as total_consumo
+            FROM maquinas
+            LEFT JOIN registro_consumo ON maquinas.id = registro_consumo.id_maquina
+            GROUP BY maquinas.id, maquinas.modelo
         """
         cursor.execute(query)
         reportes = cursor.fetchall()
@@ -619,7 +615,7 @@ def reporte_total_mensual_por_cliente():
         SELECT 
             clientes.id,
             clientes.nombre,
-            SUM(maquinas.costo_alquiler_mensual) + SUM(registro_consumo.cantidad_usada * insumos.precio_unitario) as total_mensual
+            COALESCE(SUM(maquinas.costo_alquiler_mensual), 0) + COALESCE(SUM(registro_consumo.cantidad_usada * insumos.precio_unitario), 0) as total_mensual
         FROM clientes
         LEFT JOIN maquinas ON clientes.id = maquinas.id_cliente
         LEFT JOIN registro_consumo ON registro_consumo.id_maquina = maquinas.id
