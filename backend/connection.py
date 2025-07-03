@@ -18,7 +18,7 @@ def get_db_connection():
 # Prueba rápida de conexión
 if __name__ == "__main__":
     try:
-        conn = get_db_connection()
+        conn = DatabaseConnection()
         print("¡Conexión exitosa a la base de datos MySQL!")
         conn.close()
     except Exception as e:

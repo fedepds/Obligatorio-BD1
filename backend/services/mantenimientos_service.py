@@ -13,7 +13,7 @@ def agregar_mantenimiento(mantenimiento):
 
         
 def eliminar_mantenimiento(mantenimiento_id):
-    query = """DELETE FROM mantenimientos WHERE id = %s"""
+    query = """DELETE FROM mantenimientos WHERE id_mantenimiento = %s"""
     values = (mantenimiento_id,)
     
     with DatabaseConnection() as connection:
