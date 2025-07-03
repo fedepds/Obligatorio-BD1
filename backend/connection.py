@@ -12,7 +12,7 @@ print("HOST:", os.getenv('DB_HOST'))
 print("PORT:", os.getenv('DB_PORT'))
 print("DATABASE:", os.getenv('DB_NAME'))
 print("USER:", os.getenv('DB_USER'))
-print("PASS:", "****" if os.getenv('DB_PASS') else "No definida")
+print("PASS:", "" if os.getenv('DB_PASS') else "No definida")
 
 
 def get_db_connection(max_retries=3, retry_delay=2):
@@ -56,16 +56,16 @@ class DatabaseConnection:
     Context manager para manejo automático de conexiones
     """
 
-    def __init__(self):
+    def _init_(self):
         self.connection = None
         self.cursor = None
 
-    def __enter__(self):
+    def _enter_(self):
         self.connection = get_db_connection()
         self.cursor = self.connection.cursor(dictionary=True)  # Devuelve resultados como diccionarios
         return self.cursor
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def _exit_(self, exc_type, exc_val, exc_tb):
         if exc_type is not None:
             # Si hubo una excepción, hacer rollback
             if self.connection:
@@ -119,7 +119,7 @@ def test_connection():
 
 # Prueba rápida de conexión
 if __name__ == "__main__":
-    print(" Iniciando prueba de conexión...")
+    print("🔍 Iniciando prueba de conexión...")
     print("-" * 50)
 
     success = test_connection()
