@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS maquinas (
 
 -- TABLA TECNICOS
 CREATE TABLE IF NOT EXISTS tecnicos (
-    id INT PRIMARY KEY NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     contacto VARCHAR(50) UNIQUE
 );
@@ -122,23 +122,23 @@ INSERT INTO maquinas (modelo, id_cliente, ubicacion_cliente, costo_alquiler_mens
 ('PlusX', 4, 'Comedor', 1950.00),
 ('M200', 5, 'Biblioteca', 2500.00);
 
--- Insertar datos en tecnicos
-INSERT INTO tecnicos (id, nombre, contacto) VALUES
-(35899012, 'Ana Pérez', '099100200'),
-(41222333, 'Luis García', '098990011'),
-(43322110, 'María López', '091223344'),
-(40111222, 'Diego Fernández', '092344556'),
-(42131415, 'Lucía Rodríguez', '094556677'),
-(38991231, 'Juan Martínez', '096112233');
+-- Insertar datos en tecnicos (SIN especificar ID para que use AUTO_INCREMENT)
+INSERT INTO tecnicos (nombre, contacto) VALUES
+('Ana Pérez', '099100200'),
+('Luis García', '098990011'),
+('María López', '091223344'),
+('Diego Fernández', '092344556'),
+('Lucía Rodríguez', '094556677'),
+('Juan Martínez', '096112233');
 
 -- Insertar datos en mantenimientos
 INSERT INTO mantenimientos (id_maquina, id_tecnico, tipo, fecha, observaciones) VALUES
-(1, 35899012, 'Preventivo', '2024-05-10', 'Cambio de filtros y limpieza general'),
-(2, 40111222, 'Correctivo', '2024-05-12', 'Reemplazo de bomba de agua'),
-(3, 43322110, 'Preventivo', '2024-05-18', 'Chequeo eléctrico y prueba de funcionamiento'),
-(4, 41222333, 'Correctivo', '2024-05-22', 'Reparación de válvula de vapor'),
-(5, 42131415, 'Preventivo', '2024-05-25', 'Limpieza y revisión de insumos'),
-(6, 38991231, 'Correctivo', '2024-05-27', 'Ajuste de termostato y prueba final');
+(1, 1, 'Preventivo', '2024-05-10', 'Cambio de filtros y limpieza general'),
+(2, 4, 'Correctivo', '2024-05-12', 'Reemplazo de bomba de agua'),
+(3, 3, 'Preventivo', '2024-05-18', 'Chequeo eléctrico y prueba de funcionamiento'),
+(4, 2, 'Correctivo', '2024-05-22', 'Reparación de válvula de vapor'),
+(5, 5, 'Preventivo', '2024-05-25', 'Limpieza y revisión de insumos'),
+(6, 6, 'Correctivo', '2024-05-27', 'Ajuste de termostato y prueba final');
 
 -- Insertar datos en registro_consumo
 INSERT INTO registro_consumo (id_maquina, id_insumo, fecha, cantidad_usada) VALUES

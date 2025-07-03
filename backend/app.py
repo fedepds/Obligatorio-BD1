@@ -211,7 +211,7 @@ def agregar_proveedor_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/proveedores/<id>', methods=['DELETE'])
+@app.route('/api/proveedores/<int:id>', methods=['DELETE'])
 @admin_required #sacar para realizar pruebas
 def eliminar_proveedor_route(id):
     try:
@@ -226,7 +226,7 @@ def eliminar_proveedor_route(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/proveedores/<id>', methods=['PUT'])
+@app.route('/api/proveedores/<int:id>', methods=['PUT'])
 @admin_required #sacar para realizar pruebas
 def modificar_proveedor_route(id):
     data = request.get_json()
@@ -288,16 +288,16 @@ def eliminar_insumo_route(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/insumos/<codigo>', methods=['PUT'])
-def modificar_insumo_route(codigo):
+@app.route('/api/insumos/<int:id>', methods=['PUT'])
+def modificar_insumo_route(id):
     data = request.get_json()
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """UPDATE insumos SET nombre = %s, descripcion = %s, cantidad = %s, 
-                   precio = %s, proveedor_id = %s WHERE codigo = %s"""
-        values = (data['nombre'], data['descripcion'], data['cantidad'], 
-                 data['precio'], data['proveedor_id'], codigo)
+        query = """UPDATE insumos SET nombre = %s, descripcion = %s, tipo = %s, 
+                   precio_unitario = %s, rut_proveedor = %s WHERE id = %s"""
+        values = (data['nombre'], data['descripcion'], data['tipo'], 
+                 data['precio_unitario'], data['rut_proveedor'], id)
         cursor.execute(query, values)
         conn.commit()
         cursor.close()
@@ -336,7 +336,7 @@ def agregar_tecnico_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/tecnicos/<id>', methods=['DELETE'])
+@app.route('/api/tecnicos/<int:id>', methods=['DELETE'])
 @admin_required #sacar para realizar pruebas
 def eliminar_tecnico_route(id):
     try:
@@ -351,7 +351,7 @@ def eliminar_tecnico_route(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/api/tecnicos/<id>', methods=['PUT'])
+@app.route('/api/tecnicos/<int:id>', methods=['PUT'])
 @admin_required #sacar para realizar pruebas
 def modificar_tecnico_route(id):
     data = request.get_json()
@@ -368,7 +368,7 @@ def modificar_tecnico_route(id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/tecnicos', methods=['GET'])
-@admin_required #sacar para realizar pruebas
+#@admin_required #sacar para realizar pruebas
 def obtener_tecnicos_route():
     try:
         conn = get_db_connection()
