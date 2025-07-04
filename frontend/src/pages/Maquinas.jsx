@@ -207,7 +207,7 @@ const handleChange = (e) => {
           <Button
               variant="contained"
               color="primary"
-              onClick={() => navigate("/home")}
+              onClick={() => navigate(-1)}
               disabled={loading}
             >
               Volver
