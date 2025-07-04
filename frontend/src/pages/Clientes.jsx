@@ -28,13 +28,12 @@ const Clientes = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState("agregar");
   const [clienteActual, setClienteActual] = useState({
-    ci: "",
+    rut: "",
     nombre: "",
-    apellido: "",
     direccion: "",
     fecha_nacimiento: "",
     telefono: "",
-    correo_electronico: "",
+    correo: "",
   });
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -76,13 +75,12 @@ const Clientes = () => {
 
   const abrirModalAgregar = () => {
     setClienteActual({
-      ci: "",
+      rut: "",
       nombre: "",
-      apellido: "",
       direccion: "",
       fecha_nacimiento: "",
       telefono: "",
-      correo_electronico: "",
+      correo: "",
     });
     setModalMode("agregar");
     setShowModal(true);
@@ -91,6 +89,9 @@ const Clientes = () => {
   const abrirModalModificar = (cliente) => {
     setClienteActual({
       ...cliente,
+      rut: cliente.rut,
+      correo: cliente.correo || cliente.correo_electronico,
+      rut_original: cliente.rut,
       fecha_nacimiento: cliente.fecha_nacimiento
         ? new Date(cliente.fecha_nacimiento).toISOString().split('T')[0]
         : "",
@@ -117,10 +118,16 @@ const Clientes = () => {
 
     try {
       if (modalMode === "agregar") {
-        await agregarCliente(clienteActual);
+        const clienteData = {
+          ...clienteActual,
+        };
+        await agregarCliente(clienteData);
         mostrarSnackbar("Cliente agregado exitosamente");
       } else {
-        await modificarCliente(clienteActual.ci, clienteActual);
+        const clienteData = {
+          ...clienteActual,
+        };
+        await modificarCliente(clienteActual.rut_original, clienteData);
         mostrarSnackbar("Cliente modificado exitosamente");
       }
 
@@ -136,11 +143,11 @@ const Clientes = () => {
     }
   };
 
-  const handleEliminar = async (ci) => {
+  const handleEliminar = async (cliente) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este cliente?")) {
       try {
         setLoading(true);
-        await eliminarCliente(ci);
+        await eliminarCliente(cliente.rut);
         mostrarSnackbar("Cliente eliminado exitosamente");
         await fetchClientes();
       } catch (error) {
@@ -204,12 +211,12 @@ const Clientes = () => {
         ) : (
           <Grid container spacing={2}>
             {clientes.map((cliente) => (
-              <Grid item xs={12} sm={6} md={4} key={cliente.ci}>
+              <Grid item xs={12} sm={6} md={4} key={cliente.rut}>
                 <Card elevation={2} sx={{ height: "100%" }}>
                   <CardContent>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
                       <Typography variant="h6" component="div">
-                        {cliente.nombre} {cliente.apellido}
+                        {cliente.nombre}
                       </Typography>
                       <IconButton
                         size="small"
@@ -220,11 +227,11 @@ const Clientes = () => {
                     </Box>
                     <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
                       <Person fontSize="small" />
-                      <strong>CI:</strong> {cliente.ci}
+                      <strong>RUT:</strong> {cliente.rut}
                     </Typography>
-                    {cliente.correo_electronico && (
+                    {cliente.correo && (
                       <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
-                        <strong>Email:</strong> {cliente.correo_electronico}
+                        <strong>Email:</strong> {cliente.correo}
                       </Typography>
                     )}
                     {cliente.telefono && (
@@ -260,7 +267,7 @@ const Clientes = () => {
             Modificar
           </MenuItem>
           <MenuItem
-            onClick={() => handleEliminar(selectedCliente?.ci)}
+            onClick={() => handleEliminar(selectedCliente)}
             sx={{ color: 'error.main' }}
           >
             <Delete sx={{ mr: 1 }} fontSize="small" />
@@ -276,34 +283,24 @@ const Clientes = () => {
           <form onSubmit={handleSubmit}>
             <DialogContent>
               <Grid container spacing={2} sx={{ pt: 1 }}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="CI"
-                    name="ci"
-                    value={clienteActual.ci}
-                    onChange={handleChange}
-                    disabled={modalMode === "modificar"}
-                    required
-                    fullWidth
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                {modalMode === "agregar" && (
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="RUT"
+                      name="rut"
+                      value={clienteActual.rut}
+                      onChange={handleChange}
+                      required
+                      fullWidth
+                      variant="outlined"
+                    />
+                  </Grid>
+                )}
+                <Grid item xs={12} sm={modalMode === "agregar" ? 6 : 12}>
                   <TextField
                     label="Nombre"
                     name="nombre"
                     value={clienteActual.nombre}
-                    onChange={handleChange}
-                    required
-                    fullWidth
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Apellido"
-                    name="apellido"
-                    value={clienteActual.apellido}
                     onChange={handleChange}
                     required
                     fullWidth
@@ -322,10 +319,10 @@ const Clientes = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
-                    label="Correo Electrónico"
-                    name="correo_electronico"
+                    label="Correo"
+                    name="correo"
                     type="email"
-                    value={clienteActual.correo_electronico}
+                    value={clienteActual.correo}
                     onChange={handleChange}
                     fullWidth
                     variant="outlined"
