@@ -113,12 +113,13 @@ const Maquinas = () => {
     setShowModal(false);
   };
 
-  const handleChange = (e) => {
-    setMaquinaActual({
-      ...maquinaActual,
-      [e.target.modelo]: e.target.value,
-    });
-  };
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setMaquinaActual({
+    ...maquinaActual,
+    [name]: value,
+  });
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
