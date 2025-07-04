@@ -246,8 +246,8 @@ def modificar_proveedor_route(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = "UPDATE proveedores SET nombre = %s, contacto = %s WHERE id = %s"
-        cursor.execute(query, (data['nombre'], data['contacto'], id))
+        query = "UPDATE proveedores SET rut = %s, nombre = %s, contacto = %s WHERE id = %s"
+        cursor.execute(query, (data['rut'], data['nombre'], data['contacto'], id))
         conn.commit()
         cursor.close()
         conn.close()

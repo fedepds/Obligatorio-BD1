@@ -22,10 +22,10 @@ def eliminar_proveedor(rut):
         connection.commit()
 
 def modificar_proveedores(proveedor, nuevos_datos_proveedor):
-    query= """UPDATE proveedores SET nombre = %s, contacto = %s
-              WHERE rut = %s"""
-    values= (nuevos_datos_proveedor.nombre, nuevos_datos_proveedor.contacto, proveedor.rut)
-
+    query= """UPDATE proveedores SET rut = %s, nombre = %s, contacto = %s
+              WHERE id = %s"""
+    values= (nuevos_datos_proveedor.rut, nuevos_datos_proveedor.nombre,
+             nuevos_datos_proveedor.contacto, proveedor.id)
 
     with DatabaseConnection() as connection:
         cursor = connection.cursor()
