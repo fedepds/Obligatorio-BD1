@@ -11,7 +11,12 @@ import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 import Alert from "@mui/joy/Alert";
 import { useNavigate } from "react-router-dom";
-
+import EmailIcon from "@mui/icons-material/Email";
+import LockIcon from "@mui/icons-material/Lock";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import CoffeeIcon from "@mui/icons-material/Coffee";
+import Box from "@mui/joy/Box";
 
 import "../styles/Login.css";
 import { loginUsuario } from "../api";
@@ -20,13 +25,12 @@ function ModeToggle() {
   const { mode, setMode } = useColorScheme();
   const [mounted, setMounted] = React.useState(false);
 
-
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) {
-    return <Button variant="soft">Change mode</Button>;
+    return <Button variant="soft">Cambiar modo</Button>;
   }
 
   return (
@@ -37,10 +41,12 @@ function ModeToggle() {
         setMode(newMode);
       }}
       className="mode-toggle"
+      startDecorator={mode === "dark" ? <DarkModeIcon /> : <LightModeIcon />}
+      size="sm"
     >
-      <Option value="system">System</Option>
-      <Option value="light">Light</Option>
-      <Option value="dark">Dark</Option>
+      <Option value="system">Sistema</Option>
+      <Option value="light">Claro</Option>
+      <Option value="dark">Oscuro</Option>
     </Select>
   );
 }
@@ -50,75 +56,117 @@ export default function Login(props) {
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
-const handleLogin = async () => {
-  setError(null);
-  setLoading(true);
-  try {
-    const respuesta = await loginUsuario(email, password);
-    const usuario = respuesta.usuario;
-    if (usuario.es_administrador) {
-      navigate("/home");
-    } else {
-      navigate("/homeUser");
+  const handleLogin = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const respuesta = await loginUsuario(email, password);
+      const usuario = respuesta.usuario;
+      if (usuario.es_administrador) {
+        navigate("/home");
+      } else {
+        navigate("/homeUser");
+      }
+    } catch (err) {
+      setError("Error de autenticación: " + (err.message || "Credenciales incorrectas o error de conexión"));
+      console.error("Error de login:", err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    // Mensaje de error más descriptivo
-    setError("Error de autenticación: " + (err.message || "Credenciales incorrectas o error de conexión"));
-    console.error("Error de login:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleLogin();
+    }
+  };
 
   return (
     <main>
       <CssVarsProvider {...props}>
-        <ModeToggle />
         <CssBaseline />
-        <Sheet className="login-sheet" variant="outlined">
-          <div>
-            <Typography level="h4" component="h1">
-              <b>Welcome!</b>
+        <Box sx={{
+          position: 'absolute',
+          top: 20,
+          right: 20,
+          display: 'flex',
+          gap: 2
+        }}>
+          <ModeToggle />
+        </Box>
+        <Sheet
+          className="login-sheet"
+          variant="outlined"
+          sx={{
+            maxWidth: 400,
+            width: '100%',
+            mx: 'auto',
+            my: 4,
+            py: 3,
+            px: 4,
+            borderRadius: 'md',
+            boxShadow: 'md',
+          }}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+            <CoffeeIcon sx={{ fontSize: 40, mb: 1, color: 'primary.main' }} />
+            <Typography level="h3" fontWeight="bold" color="primary">
+              Cafés Marloy
             </Typography>
-            <Typography level="body-sm">Sign in to continue.</Typography>
-          </div>
-          <FormControl>
-            <FormLabel>Email</FormLabel>
+            <Typography level="body-md" sx={{ mb: 1 }}>
+              Sistema de Gestión
+            </Typography>
+          </Box>
+
+          <FormControl sx={{ mb: 2 }}>
+            <FormLabel>Correo electrónico</FormLabel>
             <Input
               name="email"
               type="email"
-              placeholder="pepe@pepe.com"
+              placeholder="ejemplo@cafesmarloy.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              startDecorator={<EmailIcon />}
+              onKeyPress={handleKeyPress}
               required
             />
           </FormControl>
-          <FormControl>
-            <FormLabel>Password</FormLabel>
+
+          <FormControl sx={{ mb: 2 }}>
+            <FormLabel>Contraseña</FormLabel>
             <Input
               name="password"
               type="password"
-              placeholder="UnaContraseñaSegura123"
+              placeholder="Ingrese su contraseña"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              startDecorator={<LockIcon />}
+              onKeyPress={handleKeyPress}
               required
             />
           </FormControl>
+
           {error && (
-            <Alert color="danger" variant="soft" sx={{ mt: 2 }}>
+            <Alert color="danger" variant="soft" sx={{ mt: 1, mb: 2 }}>
               {error}
             </Alert>
           )}
+
           <Button
-            className="login-button"
+            fullWidth
             loading={loading}
             onClick={handleLogin}
             disabled={loading}
+            sx={{ mt: 1 }}
           >
-            Log in
+            Iniciar sesión
           </Button>
+
+          <Typography level="body-sm" sx={{ mt: 2, textAlign: 'center' }}>
+            Sistema de Gestión de Mantenimiento v1.0
+          </Typography>
         </Sheet>
       </CssVarsProvider>
     </main>
