@@ -92,18 +92,18 @@ INSERT INTO login (correo, password, es_administrador) VALUES
 INSERT INTO proveedores (rut, nombre, contacto) VALUES
 (11111111, 'Proveedora Latina', 'latina@proveedores.com'),
 (22222222, 'Insumos del Sur', 'contacto@delsur.com'),
-(33333333, 'Cafe y Cía', 'ventas@cafeycia.com'),
-(44444444, 'Sabores Únicos', 'sabores@unicos.com'),
+(33333333, 'Cafe y Cia', 'ventas@cafeycia.com'),
+(44444444, 'Sabores Unicos', 'sabores@unicos.com'),
 (55555555, 'Soluciones Bebidas', 'info@solbeb.com'),
 (66666666, 'Distribuidora Oriental', 'oriental@dist.com');
 
 -- Insertar datos en insumos
 INSERT INTO insumos (nombre, descripcion, tipo, precio_unitario, rut_proveedor) VALUES
-('Café molido premium', 'Café molido premium', 'Café', 350.00, 11111111),
-('Leche en polvo', 'Leche en polvo', 'Lácteo', 220.50, 22222222),
+('Cafe molido premium', 'Cafe molido premium', 'Cafe', 350.00, 11111111),
+('Leche en polvo', 'Leche en polvo', 'Lacteo', 220.50, 22222222),
 ('Chocolate en polvo', 'Chocolate en polvo', 'Chocolate', 180.25, 44444444),
 ('Canela', 'Canela', 'Condimento', 55.00, 55555555),
-('Azúcar', 'Azúcar', 'Endulzante', 40.00, 33333333),
+('Azucar', 'Azucar', 'Endulzante', 40.00, 33333333),
 ('Vaso descartable 200ml', 'Vaso descartable 200ml', 'Descartable', 7.50, 66666666);
 
 -- Insertar datos en clientes
@@ -118,28 +118,28 @@ INSERT INTO clientes (rut, nombre, direccion, fecha_nacimiento, telefono, correo
 -- Insertar datos en maquinas
 INSERT INTO maquinas (modelo, id_cliente, ubicacion_cliente, costo_alquiler_mensual) VALUES
 ('M200', 1, 'Hall principal', 2500.00),
-('M300', 1, 'Cafetería', 2700.00),
-('Eco100', 2, 'Recepción', 1800.00),
+('M300', 1, 'Cafeteria', 2700.00),
+('Eco100', 2, 'Recepcion', 1800.00),
 ('Pro200', 3, 'Sala de espera', 2200.00),
 ('PlusX', 4, 'Comedor', 1950.00),
 ('M200', 5, 'Biblioteca', 2500.00);
 
 -- Insertar datos en tecnicos (SIN especificar ID para que use AUTO_INCREMENT)
 INSERT INTO tecnicos (nombre, contacto) VALUES
-('Ana Pérez', '099100200'),
-('Luis García', '098990011'),
-('María López', '091223344'),
-('Diego Fernández', '092344556'),
-('Lucía Rodríguez', '094556677'),
-('Juan Martínez', '096112233');
+('Ana Perez', '099100200'),
+('Luis Garcia', '098990011'),
+('Maria Lopez', '091223344'),
+('Diego Fernandez', '092344556'),
+('Lucia Rodriguez', '094556677'),
+('Juan Martinez', '096112233');
 
 -- Insertar datos en mantenimientos
 INSERT INTO mantenimientos (id_maquina, id_tecnico, tipo, fecha, observaciones) VALUES
 (1, 1, 'Preventivo', '2024-05-10', 'Cambio de filtros y limpieza general'),
 (2, 4, 'Correctivo', '2024-05-12', 'Reemplazo de bomba de agua'),
-(3, 3, 'Preventivo', '2024-05-18', 'Chequeo eléctrico y prueba de funcionamiento'),
-(4, 2, 'Correctivo', '2024-05-22', 'Reparación de válvula de vapor'),
-(5, 5, 'Preventivo', '2024-05-25', 'Limpieza y revisión de insumos'),
+(3, 3, 'Preventivo', '2024-05-18', 'Chequeo electrico y prueba de funcionamiento'),
+(4, 2, 'Correctivo', '2024-05-22', 'Reparacion de valvula de vapor'),
+(5, 5, 'Preventivo', '2024-05-25', 'Limpieza y revision de insumos'),
 (6, 6, 'Correctivo', '2024-05-27', 'Ajuste de termostato y prueba final');
 
 -- Insertar datos en registro_consumo
