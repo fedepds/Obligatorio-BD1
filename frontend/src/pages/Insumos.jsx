@@ -33,10 +33,11 @@ const Insumos = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState("agregar");
   const [insumoActual, setInsumoActual] = useState({
+    nombre: "",
     descripcion: "",
     tipo: "",
     precio_unitario: "",
-    id_proveedor: "",
+    rut_proveedor: "",
     id: "",
   });
   const [loading, setLoading] = useState(false);
@@ -79,10 +80,11 @@ const Insumos = () => {
 
   const abrirModalAgregar = () => {
     setInsumoActual({
+      nombre: "",
       descripcion: "",
       tipo: "",
       precio_unitario: "",
-      id_proveedor: "",
+      rut_proveedor: "",
       id: "",
     });
     setModalMode("agregar");
@@ -117,7 +119,7 @@ const Insumos = () => {
           descripcion: insumoActual.descripcion,
           tipo: insumoActual.tipo,
           precio_unitario: insumoActual.precio_unitario,
-          id_proveedor: insumoActual.id_proveedor,
+          rut_proveedor: insumoActual.rut_proveedor,
         });
         mostrarSnackbar("Insumo modificado exitosamente");
       }
@@ -225,7 +227,7 @@ const Insumos = () => {
                       <strong>Precio Unitario:</strong> {insumo.precio_unitario}
                     </Typography>
                     <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
-                      <strong>ID Proveedor:</strong> {insumo.id_proveedor}
+                      <strong>ID Proveedor:</strong> {insumo.rut_proveedor}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -262,7 +264,7 @@ const Insumos = () => {
             <DialogContent>
               <Grid container spacing={2} sx={{ pt: 1 }}>
                 {modalMode === "modificar" && (
-                  <Grid item xs={12}>
+                  <><Grid item xs={12}>
                     <TextField
                       label="ID"
                       name="id"
@@ -270,9 +272,19 @@ const Insumos = () => {
                       InputProps={{ readOnly: true }}
                       fullWidth
                       variant="outlined"
-                      margin="dense"
-                    />
-                  </Grid>
+                      margin="dense" />
+
+                  </Grid><Grid item xs={12}>
+                      <TextField
+                        label="Nombre"
+                        name="nombre"
+                        value={insumoActual.nombre}
+                        onChange={handleChange}
+                        required
+                        fullWidth
+                        variant="outlined"
+                        margin="dense" />
+                    </Grid></>
                 )}
                 <Grid item xs={12}>
                   <TextField
@@ -314,10 +326,10 @@ const Insumos = () => {
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
-                    label="ID Proveedor"
-                    name="id_proveedor"
+                    label="RUT Proveedor"
+                    name="rut_proveedor"
                     type="number"
-                    value={insumoActual.id_proveedor}
+                    value={insumoActual.rut_proveedor}
                     onChange={handleChange}
                     required
                     fullWidth
