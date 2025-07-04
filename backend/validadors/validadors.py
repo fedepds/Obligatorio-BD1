@@ -3,8 +3,8 @@
 def correo_valido(correo_electronico):
     return "@" in correo_electronico and "." in correo_electronico.split("@")[-1]
 
-def telefono_valido(telefono):
-    return telefono.isdigit() and 7 <= len (telefono) <= 12 #4352xxxx +598098xxxxxx #poner un aviso en el front que no se coloque signos.}
+def telefono_valido(contacto):
+    return contacto.isdigit() and 7 <= len (contacto) <= 12 #4352xxxx +598098xxxxxx #poner un aviso en el front que no se coloque signos.}
 
 def ci_valido(ci):
     return ci.isdigit() and len(ci) == 8 #Validamos que el CI sea un número de 8 dígitos

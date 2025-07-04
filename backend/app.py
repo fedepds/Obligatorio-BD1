@@ -12,6 +12,7 @@ load_dotenv()
 
 # Configuración de la aplicación Flask
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 CORS(app,
      origins=["http://localhost:3000"],  # URL específica del frontend
      supports_credentials=True,          # Permite credenciales
@@ -25,7 +26,9 @@ def get_db_connection():
         port=os.getenv('DB_PORT'),
         user=os.getenv('DB_USER'),
         password=os.getenv('DB_PASS'),
-        database=os.getenv('DB_NAME')
+        database=os.getenv('DB_NAME'),
+        charset='utf8mb4',
+        collation='utf8mb4_unicode_ci'
     )
     return conn
 SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'clave-secreta-temporal')
