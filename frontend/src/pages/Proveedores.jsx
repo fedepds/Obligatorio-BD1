@@ -35,6 +35,7 @@ const Proveedores = () => {
   const [modalMode, setModalMode] = useState("agregar");
   const [proveedorActual, setProveedorActual] = useState({
     id: "",
+    rut: "",
     nombre: "",
     contacto: "",
   });
@@ -78,6 +79,7 @@ const Proveedores = () => {
   const abrirModalAgregar = () => {
     setProveedorActual({
       id: "",
+      rut: "",
       nombre: "",
       contacto: "",
     });
@@ -210,7 +212,7 @@ const Proveedores = () => {
                     </Box>
                     <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
                       <Business fontSize="small" />
-                      <strong>ID:</strong> {proveedor.id}
+                      <strong>RUT:</strong> {proveedor.rut || "Sin RUT"}
                     </Typography>
                     <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
                       <ContactPhone fontSize="small" />
@@ -252,6 +254,18 @@ const Proveedores = () => {
           <form onSubmit={handleSubmit}>
             <DialogContent>
               <Grid container spacing={2} sx={{ pt: 1 }}>
+                <Grid item xs={12}>
+                  <TextField
+                    label="RUT"
+                    name="rut"
+                    value={proveedorActual.rut || ""}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Ej: 12345678-9"
+                  />
+                </Grid>
                 <Grid item xs={12}>
                   <TextField
                     label="Nombre"

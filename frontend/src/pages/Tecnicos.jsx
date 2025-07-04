@@ -217,11 +217,6 @@ const Tecnicos = () => {
                       </Box>
 
                       <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <Person fontSize="small" />
-                        <strong>ID:</strong> {tecnico.id}
-                      </Typography>
-
-                      <Typography color="text.secondary" variant="body2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
                         <strong>Contacto:</strong> {tecnico.contacto}
                       </Typography>
                     </CardContent>
