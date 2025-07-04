@@ -33,6 +33,13 @@ import {
   Inventory,
   AttachMoney,
 } from "@mui/icons-material";
+import {
+  obtenerReporteMantenimientosPorTecnico,
+  obtenerReporteConsumoPorMaquina,
+  obtenerReporteTotalMensualPorCliente,
+  obtenerReporteInsumosMayorConsumo,
+  obtenerReporteClientesConMasMaquinas
+} from "../api";
 
 const Reportes = () => {
   const [reporteSeleccionado, setReporteSeleccionado] = useState("");
@@ -74,33 +81,47 @@ const Reportes = () => {
     },
   ];
 
-  const generarReporte = async () => {
-    if (!reporteSeleccionado) {
-      setError("Por favor selecciona un tipo de reporte");
-      return;
+const generarReporte = async () => {
+  if (!reporteSeleccionado) {
+    setError("Por favor selecciona un tipo de reporte");
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+
+  try {
+    let data;
+
+    switch(reporteSeleccionado) {
+      case "mantenimientos-por-tecnico":
+        data = await obtenerReporteMantenimientosPorTecnico();
+        break;
+      case "consumo-por-maquina":
+        data = await obtenerReporteConsumoPorMaquina();
+        break;
+      case "total-mensual-por-cliente":
+        data = await obtenerReporteTotalMensualPorCliente();
+        break;
+      case "insumos-mayor-consumo":
+        data = await obtenerReporteInsumosMayorConsumo();
+        break;
+      case "clientes-mas-maquinas":
+        data = await obtenerReporteClientesConMasMaquinas();
+        break;
+      default:
+        throw new Error("Tipo de reporte no válido");
     }
 
-    setLoading(true);
-    setError("");
-    
-    try {
-      const response = await fetch(`http://localhost:5000/api/reportes/${reporteSeleccionado}`);
-      
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      setDatosReporte(data);
-    } catch (error) {
-      console.error("Error al generar reporte:", error);
-      setError("Error al generar reporte: " + error.message);
-      setDatosReporte([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    setDatosReporte(data);
+  } catch (error) {
+    console.error("Error al generar reporte:", error);
+    setError("Error al generar reporte: " + error.message);
+    setDatosReporte([]);
+  } finally {
+    setLoading(false);
+  }
+};
   const renderTablaReporte = () => {
     if (datosReporte.length === 0) return null;
 

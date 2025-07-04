@@ -143,3 +143,6 @@ export const eliminarMaquina = (id) => peticionAPI(`/api/maquinas/${id}`, "DELET
 // ---------------- REPORTES ----------------
 export const obtenerReporteMantenimientosPorTecnico = () => peticionAPI("/api/reportes/mantenimientos-por-tecnico");
 export const obtenerReporteConsumoPorMaquina = () => peticionAPI("/api/reportes/consumo-por-maquina");
+export const obtenerReporteTotalMensualPorCliente = () => peticionAPI("/api/reportes/total-mensual-por-cliente");
+export const obtenerReporteInsumosMayorConsumo = () => peticionAPI("/api/reportes/insumos-mayor-consumo");
+export const obtenerReporteClientesConMasMaquinas = () => peticionAPI("/api/reportes/clientes-mas-maquinas");
