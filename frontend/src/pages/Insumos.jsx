@@ -227,7 +227,7 @@ const Insumos = () => {
                       <strong>Precio Unitario:</strong> {insumo.precio_unitario}
                     </Typography>
                     <Typography color="text.secondary" variant="body2" sx={{ mb: 1 }}>
-                      <strong>ID Proveedor:</strong> {insumo.rut_proveedor}
+                      <strong>RUT Proveedor:</strong> {insumo.rut_proveedor}
                     </Typography>
                   </CardContent>
                 </Card>
