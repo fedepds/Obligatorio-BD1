@@ -36,6 +36,7 @@ El sistema implementa las siguientes entidades principales:
 - **Node.js**: Necesario para ejecutar npm (mínimo v14.x recomendado)
 - **npm**: Gestor de paquetes para JavaScript
 - **Python 3.x**: Lenguaje del backend
+- **ENV** para realizar las pruebas colocar el .env dentro de la carpeta backend
 
 
 ### Instalación 
